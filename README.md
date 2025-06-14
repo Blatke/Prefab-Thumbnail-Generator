@@ -2,7 +2,7 @@
 Unity scripts for generating thumbnails from selected prefabs.
 
 # Installation
-Download the .zip file for the latest version on the [Release] page. Uncompress it and there will be .cs files as below:
+Download the **Source code.zip** file for the latest version on the [Release](https://github.com/Blatke/Prefab-Thumbnail-Generator/releases) page. Uncompress it and there will be .cs files as below:
 1. ModifyTextureImportSettings.cs
 2. ModifyTextureImportSettings_unity2018.cs
 3. PrefabThumbnailGenerator.cs
