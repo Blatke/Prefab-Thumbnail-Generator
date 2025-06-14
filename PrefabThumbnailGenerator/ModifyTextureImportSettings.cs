@@ -1,5 +1,10 @@
 // First created on June 14, 2025.
-// Version 1.0.0 on June 14, 2025.
+// Version 1.0.1 on June 14, 2025.
+
+#if UNITY_2020 || UNITY_2021 || UNITY_2022 || UNITY_2023 || UNITY_2024 || UNITY_6 || UNITY_7
+#define UNITY_2020_OR_NEWER
+#endif
+
 using UnityEngine;
 using UnityEditor;
 using System.IO;
@@ -38,7 +43,6 @@ namespace Blatke.General.Texture
         public void SettingChangeProcess(string filePath)
         {
             string assetPath = filePath.Replace("\\", "/");
-            // 获取纹理导入器
             importer = AssetImporter.GetAtPath(assetPath) as TextureImporter;
             if (importer != null)
             {
@@ -77,12 +81,14 @@ namespace Blatke.General.Texture
                 case 7:
                     importer.textureType = TextureImporterType.SingleChannel;
                     break;
+                #if UNITY_2020_OR_NEWER
                 case 8:
                     importer.textureType = TextureImporterType.Shadowmask;
                     break;
                 case 9:
                     importer.textureType = TextureImporterType.DirectionalLightmap;
                     break;
+                #endif
             }
         }
         private void TexCompression(int compression)
@@ -127,9 +133,13 @@ namespace Blatke.General.Texture
                 {4, "Cursor"},
                 {5, "Cookie"},
                 {6, "Lightmap"},
-                {7, "SingleChannel"},
-                {8, "Shadowmask"},
-                {9, "DirectionalLightmap"}
+                #if UNITY_2020_OR_NEWER
+                    {7, "SingleChannel"},
+                    {8, "Shadowmask"},
+                    {9, "DirectionalLightmap"}
+                #else
+                    {7, "SingleChannel"}
+                #endif        
             };
         }
     }

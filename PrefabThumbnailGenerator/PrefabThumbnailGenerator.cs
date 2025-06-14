@@ -1,8 +1,13 @@
 // First created on June 14, 2025.
-// Version 1.0.0 on June 14, 2025.
+// Version 1.0.1 on June 14, 2025.
 /*
 Click on the top menu Window -> Prefab Thumbnail Generator to show the window
 */
+
+#if UNITY_2020 || UNITY_2021 || UNITY_2022 || UNITY_2023 || UNITY_2024 || UNITY_6 || UNITY_7 || UNITY_2018 || UNITY_2019
+#define UNITY_2018_OR_NEWER
+#endif
+
 using UnityEngine;
 using UnityEditor;
 using S = System;
@@ -22,6 +27,7 @@ namespace Blatke.General.Texture
         private int targetType = 0;
         private bool targetMipMap = false;
         private List<string> savePath = new List<string>();
+        private List<string> _filePath = new List<string>();
         private List<Object> prefabsToProcess = new List<Object>();
         private int _messageType = 0;
         private string _messageText = "";
@@ -41,6 +47,7 @@ namespace Blatke.General.Texture
             targetPrefix = EditorGUILayout.TextField("FileName Prefix", targetPrefix);
             targetSuffix = EditorGUILayout.TextField("FileName Suffix", targetSuffix);
 
+            #if UNITY_2018_OR_NEWER
             ModifyTextureImportSettings onPop = new ModifyTextureImportSettings();
             onPop.OnMenu();
 
@@ -74,6 +81,7 @@ namespace Blatke.General.Texture
                 targetMipMap = GUILayout.Toggle(targetMipMap,"");
             }            
             GUILayout.EndHorizontal();
+            #endif
 
             if (GUILayout.Button("Generate from Selected Prefabs") && !isProcessing)
             {
@@ -140,7 +148,6 @@ namespace Blatke.General.Texture
                     savePath.Add(Path.GetDirectoryName(AssetDatabase.GetAssetPath(obj)));
                 }
             }
-
             if (prefabsToProcess.Count > 0)
             {
                 isProcessing = true;
@@ -161,6 +168,12 @@ namespace Blatke.General.Texture
                 isProcessing = false;
                 EditorApplication.update -= ProcessNextPrefab;
                 AssetDatabase.Refresh();
+
+                ModifyTextureImportSettings textureSet = new ModifyTextureImportSettings(){type = targetType,
+                compression = targetCompression,
+                mipmap = targetMipMap};
+                textureSet.SettingChangeProcess(_filePath);
+
                 // Debug.Log("All thumbnails saved!");
                 Message(true, 0, "[" + S.DateTime.Now.ToString("HH:mm:ss") + "] All thumbnails saved!");
                 return;
@@ -201,12 +214,8 @@ namespace Blatke.General.Texture
 
             SavePathCheck(_savePath);
             string filePath = Path.Combine(_savePath, targetPrefix + prefab.name + targetSuffix + ".png");
+            _filePath.Add(filePath);
             File.WriteAllBytes(filePath, bytes);
-            ModifyTextureImportSettings textureSet = new ModifyTextureImportSettings(){type = targetType,
-            compression = targetCompression,
-            mipmap = targetMipMap};
-            
-            textureSet.SettingChangeProcess(filePath);
 
             Debug.Log($"Successfully saved thumbnail to: {filePath}");
         }
