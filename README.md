@@ -5,6 +5,7 @@ Unity scripts for generating thumbnails from selected prefabs.
 Download the **Source code.zip** file for the latest version on the [Release](https://github.com/Blatke/Prefab-Thumbnail-Generator/releases) page. Uncompress it and there will be .cs files as below:
 1. ModifyTextureImportSettings.cs
 2. PrefabThumbnailGenerator.cs
+3. XmlFileRead.cs
 
 Drag and drop the .cs files which you suppose to use into your project folder, **Asset/Editor/**. If you don't have this **Editor** folder, you need to create one in the Asset folder.
 
