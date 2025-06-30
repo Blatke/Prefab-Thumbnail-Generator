@@ -128,12 +128,14 @@ namespace Blatke.General.XML
                 else
                 {
                     path = f;
+                    Debug.Log("XML Found: "+f+". ");
                     break;
                 }
             }
             if (xmlFile == null)
             {
                 isFileFound = false;
+                Debug.Log("XML Found. ");
                 return;
             }
             xDoc = XDocument.Parse(xmlFile.text);

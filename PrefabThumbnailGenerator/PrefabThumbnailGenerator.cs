@@ -1,5 +1,5 @@
 // First created by Bl@ke on June 14, 2025.
-// Version 1.0.2 on June 16, 2025.
+// Version 1.0.3 on June 30, 2025.
 /*
 Click on the top menu Window -> Prefab Thumbnail Generator to show the window
 */
@@ -23,7 +23,7 @@ namespace Blatke.General.Texture
 {
     public class PrefabThumbnailGenerator : EditorWindow
     {
-        private static string windowTitle = "Prefab Thumbnail Generator v1.0.2";
+        private static string windowTitle = "Prefab Thumbnail Generator v1.0.3";
         private int targetWidth = 128;
         private int targetHeight = 128;
         private string targetPrefix = "";
@@ -45,6 +45,8 @@ namespace Blatke.General.Texture
         private bool _doMessageBubble = false;
         // private bool _isModXmlUse = false;
         private bool isProcessing = false;
+        private int _failProcessingNumber = 0;
+        private int _successProcessingNumber = 0;
 
         [MenuItem("Window/Bl@ke/Prefab Thumbnail Generator")]
         public static void ShowWindow()
@@ -104,7 +106,7 @@ if (!targetReferenceMod){
 #if UNITY_2018
             GUILayout.BeginHorizontal();
             {
-                GUILayout.Label(new GUIContent("Name by 'mod.xml' for StuioItem", "Will read mod.xml/mod.sxml outside current folder. If no corresponding tags found there, it will instead use prefab name."));
+                GUILayout.Label(new GUIContent("Name by 'mod.xml' for StuioItem", "Will read 'mod.xml' outside current folder. If no corresponding tags found there, it will instead use prefab name."));
                 GUILayout.FlexibleSpace();
                 targetReferenceMod = GUILayout.Toggle(targetReferenceMod,"");
             }            
@@ -177,13 +179,21 @@ if (!targetReferenceMod){
         }
         void ProcessPrefabs()
         {
+            _failProcessingNumber = 0;
+            _successProcessingNumber = 0;
             prefabsToProcess.Clear();
+            savePath.Clear();
+            _modXmlPath = "";
             foreach (Object obj in Selection.objects)
             {
-                if (obj is GameObject)
+                if (obj is GameObject)// || obj is Material || obj is Texture2D)
                 {
                     prefabsToProcess.Add(obj);
                     savePath.Add(Path.GetDirectoryName(AssetDatabase.GetAssetPath(obj)));
+                }
+                else
+                {
+                    _failProcessingNumber += 1;
                 }
             }
             if (prefabsToProcess.Count > 0)
@@ -195,7 +205,8 @@ if (!targetReferenceMod){
             else
             {
                 // Debug.LogWarning("No valid prefabs selected.");
-                Message(true, 1, "[" + S.DateTime.Now.ToString("HH:mm:ss") + "] No valid prefabs selected.");
+                Message(true, 1, "[" + S.DateTime.Now.ToString("HH:mm:ss") + "] No valid prefabs selected. " + @"
+Failed: " + _failProcessingNumber + ". ");
             }
         }
         void ProcessNextPrefab()
@@ -216,7 +227,10 @@ if (!targetReferenceMod){
                 textureSet.SettingChangeProcess(_filePath);
 
                 // Debug.Log("All thumbnails saved!");
-                Message(true, 0, "[" + S.DateTime.Now.ToString("HH:mm:ss") + "] All thumbnails saved!");
+                string _successProcessingMsg = (_failProcessingNumber == 0) ? "All thumbnails saved! " : "Partly thumbnails saved. " + @"
+Successed: " + _successProcessingNumber + "; " +@"
+Failed: " + _failProcessingNumber + ". ";
+                Message(true, 0, "[" + S.DateTime.Now.ToString("HH:mm:ss") + "] " + _successProcessingMsg);
                 return;
             }
 
@@ -284,6 +298,7 @@ if (!targetReferenceMod){
             string filePath = Path.Combine(_savePath, image_fileName + ".png");
             _filePath.Add(filePath);
             File.WriteAllBytes(filePath, bytes);
+            _successProcessingNumber += 1;
 
             Debug.Log($"Successfully saved thumbnail to: {filePath}");
         }
