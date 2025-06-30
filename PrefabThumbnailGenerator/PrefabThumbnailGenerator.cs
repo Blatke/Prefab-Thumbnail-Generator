@@ -1,5 +1,5 @@
 // First created by Bl@ke on June 14, 2025.
-// Version 1.0.3 on June 30, 2025.
+// Version 1.0.4 on July 1, 2025.
 /*
 Click on the top menu Window -> Prefab Thumbnail Generator to show the window
 */
@@ -14,6 +14,8 @@ using S = System;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
+using Blatke.General.Asset;
+using Blatke.General.PathHepler;
 
 #if UNITY_2018
 using Blatke.General.XML;
@@ -24,6 +26,8 @@ namespace Blatke.General.Texture
     public class PrefabThumbnailGenerator : EditorWindow
     {
         private static string windowTitle = "Prefab Thumbnail Generator v1.0.3";
+        private string _settingFileName = "PrefabThumbnailGenerator.asset";
+        private bool _isAssetAlreadyRead = false;
         private int targetWidth = 128;
         private int targetHeight = 128;
         private string targetPrefix = "";
@@ -47,15 +51,69 @@ namespace Blatke.General.Texture
         private bool isProcessing = false;
         private int _failProcessingNumber = 0;
         private int _successProcessingNumber = 0;
+        AssetFileRead afr = null;
 
         [MenuItem("Window/Bl@ke/Prefab Thumbnail Generator")]
         public static void ShowWindow()
         {
             GetWindow<PrefabThumbnailGenerator>(windowTitle);
         }
+        void AssetInitialize()
+        {
+            if (_isAssetAlreadyRead) return;
+            _isAssetAlreadyRead = true;
+            ScriptFinder scriptFinder = new ScriptFinder();
+            string _thisFolder = scriptFinder.GetParentFolder(scriptFinder.GetScriptPath(this));
+            afr = new AssetFileRead(Path.Combine(_thisFolder, _settingFileName));
+            afr.SetRead("targetWidth", ref targetWidth);
+            afr.SetRead("targetHeight", ref targetHeight);
+            afr.SetRead("targetPrefix", ref targetPrefix);
+            afr.SetRead("targetSuffix", ref targetSuffix);
+            afr.SetRead("targetCompression", ref targetCompression);
+            afr.SetRead("targetType", ref targetType);
+            afr.SetRead("targetMipMap", ref targetMipMap);
+            afr.SetRead("targetReferenceMod", ref targetReferenceMod);
+            afr.SetRead("targetSaveInThumbsFolder", ref targetSaveInThumbsFolder);
+        }
+        void AssetUpdate(){
+            afr.Write(""+nameof(targetWidth)+"", ""+targetWidth);
+            afr.Write(""+nameof(targetHeight)+"", ""+targetHeight);
+            afr.Write(""+nameof(targetPrefix)+"", ""+targetPrefix);
+            afr.Write(""+nameof(targetSuffix)+"", ""+targetSuffix);
+            afr.Write(""+nameof(targetCompression)+"", ""+targetCompression);
+            afr.Write(""+nameof(targetType)+"", ""+targetType);
+            afr.Write(""+nameof(targetMipMap)+"", ""+targetMipMap);
+            afr.Write(""+nameof(targetReferenceMod)+"", ""+targetReferenceMod);
+            afr.Write(""+nameof(targetSaveInThumbsFolder)+"", ""+targetSaveInThumbsFolder);
+            if (afr.isChanged)
+            {
+                afr.Update();
+                afr.isChanged = false;
+                _isAssetAlreadyRead = false;
+                Debug.Log("Settings saved! ");
+            }
+            else
+            {
+                Debug.Log("Nothing changed in settings. ");
+            }
+        }
+        // void OnDisable(){
+        //     AssetUpdate();            
+        // }
         void OnGUI()
         {
-            GUILayout.Label("Prefab Thumbnail Settings", EditorStyles.boldLabel);
+            AssetInitialize();
+            GUILayout.BeginHorizontal();
+            {
+                GUILayout.Label("Prefab Thumbnail Settings", EditorStyles.boldLabel);
+                GUILayout.FlexibleSpace();
+                if (GUILayout.Button("Save Settings"))
+                {
+                    AssetUpdate();
+                }
+            }
+            
+            GUILayout.EndHorizontal();
             targetWidth = EditorGUILayout.IntField("Width", targetWidth);
             targetHeight = EditorGUILayout.IntField("Height", targetHeight);
 #if UNITY_2018
