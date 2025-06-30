@@ -25,7 +25,7 @@ namespace Blatke.General.Texture
 {
     public class PrefabThumbnailGenerator : EditorWindow
     {
-        private static string windowTitle = "Prefab Thumbnail Generator v1.0.3";
+        private static string windowTitle = "Prefab Thumbnail Generator v1.0.4";
         private string _settingFileName = "PrefabThumbnailGenerator.asset";
         private bool _isAssetAlreadyRead = false;
         private int targetWidth = 128;
