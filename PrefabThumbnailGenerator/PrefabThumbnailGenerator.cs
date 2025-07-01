@@ -1,5 +1,5 @@
 // First created by Bl@ke on June 14, 2025.
-// Version 1.0.5 on July 2, 2025.
+// Version 1.0.6 on July 2, 2025.
 /*
 Guide:
 - If you update any scripts for this Generator, please re-open its window after the updating.
@@ -17,6 +17,8 @@ using S = System;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Blatke.General.Json;
 using Blatke.General.PathHepler;
 
@@ -28,7 +30,7 @@ namespace Blatke.General.Texture
 {
     public class PrefabThumbnailGenerator : EditorWindow
     {
-        private static string windowTitle = "Prefab Thumbnail Generator v1.0.5";
+        private static string windowTitle = "Prefab Thumbnail Generator v1.0.6";
         private string _settingFileName = "PrefabThumbnailGeneratorSettings.json";
         private bool _isSettingsAlreadyRead = false;
         private int targetWidth = 128;
@@ -54,6 +56,7 @@ namespace Blatke.General.Texture
         private int _failProcessingNumber = 0;
         private int _successProcessingNumber = 0;
         private JsonRead jr;
+        private CancellationTokenSource _cancellationTokenSource;
 
         [MenuItem("Window/Bl@ke/Prefab Thumbnail Generator")]
         public static void ShowWindow()
@@ -175,7 +178,7 @@ if (!targetReferenceMod){
             }            
             GUILayout.EndHorizontal();
 
-            if (targetReferenceMod){
+            // if (targetReferenceMod){
                 GUILayout.BeginHorizontal();
                 {
                     GUILayout.Label(new GUIContent("Save in 'thumbs' Folder", "Will save thumbnails in 'thumbs' folder outside current folder. If no such this folder found, it will create one."));
@@ -183,7 +186,7 @@ if (!targetReferenceMod){
                     targetSaveInThumbsFolder = GUILayout.Toggle(targetSaveInThumbsFolder,"");
                 }
                 GUILayout.EndHorizontal();
-            }
+            // }
 #endif
 
             if (GUILayout.Button("Generate from Selected Prefabs") && !isProcessing)
@@ -351,7 +354,7 @@ Failed: " + _failProcessingNumber + ". ";
             }
 
 #if UNITY_2018
-            if (targetReferenceMod && targetSaveInThumbsFolder)
+            if (targetSaveInThumbsFolder)
             {
                 DirectoryInfo _parentOfCurrentFolder = Directory.GetParent(_savePath);
                 _savePath = Path.Combine(_parentOfCurrentFolder.ToString(), "thumbs");
