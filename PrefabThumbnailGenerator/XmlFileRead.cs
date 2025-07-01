@@ -1,10 +1,11 @@
 ﻿// First created by Bl@ke on June 14, 2025.
-// Version 1.0.0 on June 16, 2025.
+// Version 1.0.1 on July 2, 2025.
 using UnityEngine;
 using UnityEditor;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Linq;
 using System.Xml;
 using System.Xml.Linq;
@@ -117,28 +118,29 @@ namespace Blatke.General.XML
         private void XmlFileGet(out XDocument xDoc)
         {
             xDoc = null;
-            TextAsset xmlFile = null;
+            string xmlContent = null;
             foreach (string f in _fileName)
             {
-                xmlFile = AssetDatabase.LoadAssetAtPath<TextAsset>(f);
-                if (xmlFile == null)
+                if (!File.Exists(f))
                 {
                     continue;
                 }
                 else
                 {
                     path = f;
-                    Debug.Log("XML Found: "+f+". ");
+                    xmlContent = File.ReadAllText(path, Encoding.UTF8);
+                    Debug.Log("XML found at: " + f + ". ");
                     break;
                 }
             }
-            if (xmlFile == null)
+            if (string.IsNullOrEmpty(xmlContent))
             {
                 isFileFound = false;
-                Debug.Log("XML Found. ");
+                Debug.Log("No XML found. ");
                 return;
             }
-            xDoc = XDocument.Parse(xmlFile.text);
+            
+            xDoc = XDocument.Parse(xmlContent);
             isFileFound = true;
         }
     }

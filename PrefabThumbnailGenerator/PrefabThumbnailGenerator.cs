@@ -1,7 +1,10 @@
 // First created by Bl@ke on June 14, 2025.
-// Version 1.0.4 on July 1, 2025.
+// Version 1.0.5 on July 2, 2025.
 /*
-Click on the top menu Window -> Prefab Thumbnail Generator to show the window
+Guide:
+- If you update any scripts for this Generator, please re-open its window after the updating.
+- It requires Newtonsoft.Json to save the settings, please download it at first at https://github.com/JamesNK/Newtonsoft.Json, if you don't have it in Unity. Drag and drop the "net20" folder from the compression pack to Asset folder in Unity.
+- Click on the top menu Window -> Prefab Thumbnail Generator to show the window.
 */
 
 #if UNITY_2020 || UNITY_2021 || UNITY_2022 || UNITY_2023 || UNITY_2024 || UNITY_6 || UNITY_7 || UNITY_2018 || UNITY_2019
@@ -14,7 +17,7 @@ using S = System;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
-using Blatke.General.Asset;
+using Blatke.General.Json;
 using Blatke.General.PathHepler;
 
 #if UNITY_2018
@@ -25,9 +28,9 @@ namespace Blatke.General.Texture
 {
     public class PrefabThumbnailGenerator : EditorWindow
     {
-        private static string windowTitle = "Prefab Thumbnail Generator v1.0.4";
-        private string _settingFileName = "PrefabThumbnailGenerator.asset";
-        private bool _isAssetAlreadyRead = false;
+        private static string windowTitle = "Prefab Thumbnail Generator v1.0.5";
+        private string _settingFileName = "PrefabThumbnailGeneratorSettings.json";
+        private bool _isSettingsAlreadyRead = false;
         private int targetWidth = 128;
         private int targetHeight = 128;
         private string targetPrefix = "";
@@ -47,54 +50,56 @@ namespace Blatke.General.Texture
         private int _messageType = 0;
         private string _messageText = "";
         private bool _doMessageBubble = false;
-        // private bool _isModXmlUse = false;
         private bool isProcessing = false;
         private int _failProcessingNumber = 0;
         private int _successProcessingNumber = 0;
-        AssetFileRead afr = null;
+        private JsonRead jr;
 
         [MenuItem("Window/Bl@ke/Prefab Thumbnail Generator")]
         public static void ShowWindow()
         {
             GetWindow<PrefabThumbnailGenerator>(windowTitle);
         }
-        void AssetInitialize()
+        void SettingsInitialize()
         {
-            if (_isAssetAlreadyRead) return;
-            _isAssetAlreadyRead = true;
+            if (_isSettingsAlreadyRead) return;
+            _isSettingsAlreadyRead = true;
             ScriptFinder scriptFinder = new ScriptFinder();
-            string _thisFolder = scriptFinder.GetParentFolder(scriptFinder.GetScriptPath(this));
-            afr = new AssetFileRead(Path.Combine(_thisFolder, _settingFileName));
-            afr.SetRead("targetWidth", ref targetWidth);
-            afr.SetRead("targetHeight", ref targetHeight);
-            afr.SetRead("targetPrefix", ref targetPrefix);
-            afr.SetRead("targetSuffix", ref targetSuffix);
-            afr.SetRead("targetCompression", ref targetCompression);
-            afr.SetRead("targetType", ref targetType);
-            afr.SetRead("targetMipMap", ref targetMipMap);
-            afr.SetRead("targetReferenceMod", ref targetReferenceMod);
-            afr.SetRead("targetSaveInThumbsFolder", ref targetSaveInThumbsFolder);
+            string _jrPath = Path.Combine(scriptFinder.GetParentFolder(scriptFinder.GetScriptPath(this)), _settingFileName);
+            jr = new JsonRead(_jrPath);
+
+            jr.SetRead("targetWidth", ref targetWidth);
+            jr.SetRead("targetHeight", ref targetHeight);
+            jr.SetRead("targetPrefix", ref targetPrefix);
+            jr.SetRead("targetSuffix", ref targetSuffix);
+            jr.SetRead("targetCompression", ref targetCompression);
+            jr.SetRead("targetType", ref targetType);
+            jr.SetRead("targetMipMap", ref targetMipMap);
+            jr.SetRead("targetReferenceMod", ref targetReferenceMod);
+            jr.SetRead("targetSaveInThumbsFolder", ref targetSaveInThumbsFolder);
         }
-        void AssetUpdate(){
-            afr.Write(""+nameof(targetWidth)+"", ""+targetWidth);
-            afr.Write(""+nameof(targetHeight)+"", ""+targetHeight);
-            afr.Write(""+nameof(targetPrefix)+"", ""+targetPrefix);
-            afr.Write(""+nameof(targetSuffix)+"", ""+targetSuffix);
-            afr.Write(""+nameof(targetCompression)+"", ""+targetCompression);
-            afr.Write(""+nameof(targetType)+"", ""+targetType);
-            afr.Write(""+nameof(targetMipMap)+"", ""+targetMipMap);
-            afr.Write(""+nameof(targetReferenceMod)+"", ""+targetReferenceMod);
-            afr.Write(""+nameof(targetSaveInThumbsFolder)+"", ""+targetSaveInThumbsFolder);
-            if (afr.isChanged)
+        void SettingsUpdate(){
+            jr.Write(""+nameof(targetWidth)+"", ""+targetWidth);
+            jr.Write(""+nameof(targetHeight)+"", ""+targetHeight);
+            jr.Write(""+nameof(targetPrefix)+"", ""+targetPrefix);
+            jr.Write(""+nameof(targetSuffix)+"", ""+targetSuffix);
+            jr.Write(""+nameof(targetCompression)+"", ""+targetCompression);
+            jr.Write(""+nameof(targetType)+"", ""+targetType);
+            jr.Write(""+nameof(targetMipMap)+"", ""+targetMipMap);
+            jr.Write(""+nameof(targetReferenceMod)+"", ""+targetReferenceMod);
+            jr.Write(""+nameof(targetSaveInThumbsFolder)+"", ""+targetSaveInThumbsFolder);
+            if (jr.isChanged)
             {
-                afr.Update();
-                afr.isChanged = false;
-                _isAssetAlreadyRead = false;
-                Debug.Log("Settings saved! ");
+                jr.Update();
+                jr.isChanged = false;
+                _isSettingsAlreadyRead = false;
+                // Debug.Log("Settings saved! ");
+                Message(true, 0, "[" + S.DateTime.Now.ToString("HH:mm:ss") + "] " + "Settings saved. ");
             }
             else
             {
-                Debug.Log("Nothing changed in settings. ");
+                // Debug.Log("Nothing changed in settings. ");
+                Message(true, 0, "[" + S.DateTime.Now.ToString("HH:mm:ss") + "] " + "Nothing changed in settings. No need to save it. ");
             }
         }
         // void OnDisable(){
@@ -102,14 +107,14 @@ namespace Blatke.General.Texture
         // }
         void OnGUI()
         {
-            AssetInitialize();
+            SettingsInitialize();
             GUILayout.BeginHorizontal();
             {
                 GUILayout.Label("Prefab Thumbnail Settings", EditorStyles.boldLabel);
                 GUILayout.FlexibleSpace();
                 if (GUILayout.Button("Save Settings"))
                 {
-                    AssetUpdate();
+                    SettingsUpdate();
                 }
             }
             
@@ -164,7 +169,7 @@ if (!targetReferenceMod){
 #if UNITY_2018
             GUILayout.BeginHorizontal();
             {
-                GUILayout.Label(new GUIContent("Name by 'mod.xml' for StuioItem", "Will read 'mod.xml' outside current folder. If no corresponding tags found there, it will instead use prefab name."));
+                GUILayout.Label(new GUIContent("Name by 'mod.xml' for StuioItem", "Will read mod.xml/mod.sxml outside current folder. If no corresponding tags found there, it will instead use prefab name."));
                 GUILayout.FlexibleSpace();
                 targetReferenceMod = GUILayout.Toggle(targetReferenceMod,"");
             }            
@@ -286,9 +291,10 @@ Failed: " + _failProcessingNumber + ". ");
 
                 // Debug.Log("All thumbnails saved!");
                 string _successProcessingMsg = (_failProcessingNumber == 0) ? "All thumbnails saved! " : "Partly thumbnails saved. " + @"
-Successed: " + _successProcessingNumber + "; " +@"
+Successed: " + _successProcessingNumber + "; " + @"
 Failed: " + _failProcessingNumber + ". ";
-                Message(true, 0, "[" + S.DateTime.Now.ToString("HH:mm:ss") + "] " + _successProcessingMsg);
+                int _successProcessingMsgType = (_failProcessingNumber == 0) ? 0 : 1;
+                Message(true, _successProcessingMsgType, "[" + S.DateTime.Now.ToString("HH:mm:ss") + "] " + _successProcessingMsg);
                 return;
             }
 
