@@ -56,7 +56,7 @@ namespace Blatke.General.Texture
         private int _failProcessingNumber = 0;
         private int _successProcessingNumber = 0;
         private JsonRead jr;
-        private CancellationTokenSource _cancellationTokenSource;
+        // private CancellationTokenSource _cancellationTokenSource;
 
         [MenuItem("Window/Bl@ke/Prefab Thumbnail Generator")]
         public static void ShowWindow()
@@ -272,7 +272,8 @@ if (!targetReferenceMod){
             {
                 // Debug.LogWarning("No valid prefabs selected.");
                 Message(true, 1, "[" + S.DateTime.Now.ToString("HH:mm:ss") + "] No valid prefabs selected. " + @"
-Failed: " + _failProcessingNumber + ". ");
+                
+    Failed: " + _failProcessingNumber + ". ");
             }
         }
         void ProcessNextPrefab()
@@ -293,9 +294,10 @@ Failed: " + _failProcessingNumber + ". ");
                 textureSet.SettingChangeProcess(_filePath);
 
                 // Debug.Log("All thumbnails saved!");
-                string _successProcessingMsg = (_failProcessingNumber == 0) ? "All thumbnails saved! " : "Partly thumbnails saved. " + @"
-Successed: " + _successProcessingNumber + "; " + @"
-Failed: " + _failProcessingNumber + ". ";
+                string _successProcessingMsg = (_failProcessingNumber == 0) ? "All thumbnails saved! " : "Not all thumbnails succefully generated. Perhaps some prefabs didn't have correct textures. " + @"
+
+    Successed: " + _successProcessingNumber + "; " + @"
+    Failed: " + _failProcessingNumber + ". ";
                 int _successProcessingMsgType = (_failProcessingNumber == 0) ? 0 : 1;
                 Message(true, _successProcessingMsgType, "[" + S.DateTime.Now.ToString("HH:mm:ss") + "] " + _successProcessingMsg);
                 return;
@@ -316,8 +318,9 @@ Failed: " + _failProcessingNumber + ". ";
             // If not ready, wait for a retry.
             if (thumbnail == null || AssetPreview.IsLoadingAssetPreview(prefab.GetInstanceID()))
             {
-                prefabsToProcess.Add(prefab);
-                savePath.Add(Path.GetDirectoryName(AssetDatabase.GetAssetPath(prefab)));
+                // prefabsToProcess.Add(prefab);
+                // savePath.Add(Path.GetDirectoryName(AssetDatabase.GetAssetPath(prefab)));
+                _failProcessingNumber += 1;
                 return;
             }
 
