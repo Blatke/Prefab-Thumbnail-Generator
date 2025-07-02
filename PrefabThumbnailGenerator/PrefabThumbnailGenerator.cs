@@ -1,5 +1,5 @@
 // First created by Bl@ke on June 14, 2025.
-// Version 1.0.6 on July 2, 2025.
+// Version 1.0.7 on July 3, 2025.
 /*
 Guide:
 - If you update any scripts for this Generator, please re-open its window after the updating.
@@ -30,7 +30,7 @@ namespace Blatke.General.Texture
 {
     public class PrefabThumbnailGenerator : EditorWindow
     {
-        private static string windowTitle = "Prefab Thumbnail Generator v1.0.6";
+        private static string windowTitle = "Prefab Thumbnail Generator v1.0.7";
         private string _settingFileName = "PrefabThumbnailGeneratorSettings.json";
         private bool _isSettingsAlreadyRead = false;
         private int targetWidth = 128;
@@ -40,12 +40,19 @@ namespace Blatke.General.Texture
         private int targetCompression = 0;
         private int targetType = 0;
         private bool targetMipMap = false;
-// #if UNITY_2018
+        // #if UNITY_2018
         private bool targetReferenceMod = false;
         private bool targetSaveInThumbsFolder = false;
+        private bool targetAsDesignatedTexture = false;
+        private Texture2D targetImportedTexture;
+        private Vector4 targetPureColor = new Vector4(1, 1, 1, 1);
+        private bool targetAsDesignatedTexture_isAlpha = false;
+        private bool targetAsDesignatedTexture_failOnly = false;
+
+        // ===========
         private string _modXmlPath = "";
         private ModXmlRead m = null;
-// #endif
+        // #endif
         private List<string> savePath = new List<string>();
         private List<string> _filePath = new List<string>();
         private List<Object> prefabsToProcess = new List<Object>();
@@ -56,12 +63,15 @@ namespace Blatke.General.Texture
         private int _failProcessingNumber = 0;
         private int _successProcessingNumber = 0;
         private JsonRead jr;
+        private TextureGenerator pureColorTex;
         // private CancellationTokenSource _cancellationTokenSource;
 
         [MenuItem("Window/Bl@ke/Prefab Thumbnail Generator")]
         public static void ShowWindow()
         {
-            GetWindow<PrefabThumbnailGenerator>(windowTitle);
+            var window = GetWindow<PrefabThumbnailGenerator>();
+            window.titleContent = new GUIContent(windowTitle);
+            window.Show();
         }
         void SettingsInitialize()
         {
@@ -80,17 +90,24 @@ namespace Blatke.General.Texture
             jr.SetRead("targetMipMap", ref targetMipMap);
             jr.SetRead("targetReferenceMod", ref targetReferenceMod);
             jr.SetRead("targetSaveInThumbsFolder", ref targetSaveInThumbsFolder);
+            jr.SetRead("targetAsDesignatedTexture", ref targetAsDesignatedTexture);
+            jr.SetRead("targetPureColor", ref targetPureColor);
+            jr.SetRead("targetAsDesignatedTexture_isAlpha", ref targetAsDesignatedTexture_isAlpha);
         }
-        void SettingsUpdate(){
-            jr.Write(""+nameof(targetWidth)+"", ""+targetWidth);
-            jr.Write(""+nameof(targetHeight)+"", ""+targetHeight);
-            jr.Write(""+nameof(targetPrefix)+"", ""+targetPrefix);
-            jr.Write(""+nameof(targetSuffix)+"", ""+targetSuffix);
-            jr.Write(""+nameof(targetCompression)+"", ""+targetCompression);
-            jr.Write(""+nameof(targetType)+"", ""+targetType);
-            jr.Write(""+nameof(targetMipMap)+"", ""+targetMipMap);
-            jr.Write(""+nameof(targetReferenceMod)+"", ""+targetReferenceMod);
-            jr.Write(""+nameof(targetSaveInThumbsFolder)+"", ""+targetSaveInThumbsFolder);
+        void SettingsUpdate()
+        {
+            jr.Write("" + nameof(targetWidth) + "", "" + targetWidth);
+            jr.Write("" + nameof(targetHeight) + "", "" + targetHeight);
+            jr.Write("" + nameof(targetPrefix) + "", "" + targetPrefix);
+            jr.Write("" + nameof(targetSuffix) + "", "" + targetSuffix);
+            jr.Write("" + nameof(targetCompression) + "", "" + targetCompression);
+            jr.Write("" + nameof(targetType) + "", "" + targetType);
+            jr.Write("" + nameof(targetMipMap) + "", "" + targetMipMap);
+            jr.Write("" + nameof(targetReferenceMod) + "", "" + targetReferenceMod);
+            jr.Write("" + nameof(targetSaveInThumbsFolder) + "", "" + targetSaveInThumbsFolder);
+            jr.Write("" + nameof(targetAsDesignatedTexture) + "", "" + targetAsDesignatedTexture);
+            jr.Write("" + nameof(targetPureColor) + "", "" + targetPureColor);
+            jr.Write("" + nameof(targetAsDesignatedTexture_isAlpha) + "", "" + targetAsDesignatedTexture_isAlpha);
             if (jr.isChanged)
             {
                 jr.Update();
@@ -106,7 +123,9 @@ namespace Blatke.General.Texture
             }
         }
         // void OnDisable(){
-        //     AssetUpdate();            
+        // }
+        // void OnDestroy()
+        // {         
         // }
         void OnGUI()
         {
@@ -120,7 +139,7 @@ namespace Blatke.General.Texture
                     SettingsUpdate();
                 }
             }
-            
+
             GUILayout.EndHorizontal();
             targetWidth = EditorGUILayout.IntField("Width", targetWidth);
             targetHeight = EditorGUILayout.IntField("Height", targetHeight);
@@ -172,7 +191,8 @@ if (!targetReferenceMod){
 #if UNITY_2018
             GUILayout.BeginHorizontal();
             {
-                GUILayout.Label(new GUIContent("Name by 'mod.xml' for StuioItem", "Will read mod.xml/mod.sxml outside current folder. If no corresponding tags found there, it will instead use prefab name."));
+                GUILayout.Label(new GUIContent("Name by 'mod.xml' for StuioItem", @"Will read mod.xml/mod.sxml outside current folder.
+If no corresponding tags found there, it will instead use prefab name."));
                 GUILayout.FlexibleSpace();
                 targetReferenceMod = GUILayout.Toggle(targetReferenceMod,"");
             }            
@@ -181,13 +201,73 @@ if (!targetReferenceMod){
             // if (targetReferenceMod){
                 GUILayout.BeginHorizontal();
                 {
-                    GUILayout.Label(new GUIContent("Save in 'thumbs' Folder", "Will save thumbnails in 'thumbs' folder outside current folder. If no such this folder found, it will create one."));
+                    GUILayout.Label(new GUIContent("Save in 'thumbs' Folder", @"Will save thumbnails in 'thumbs' folder outside current folder.
+If no such this folder found, it will create one."));
                     GUILayout.FlexibleSpace();
                     targetSaveInThumbsFolder = GUILayout.Toggle(targetSaveInThumbsFolder,"");
                 }
                 GUILayout.EndHorizontal();
             // }
 #endif
+
+            EditorGUILayout.BeginVertical(GUI.skin.box);
+            {
+                EditorGUILayout.BeginHorizontal();
+                {
+                    GUILayout.Label(new GUIContent("Designate Texture/Color", @"Will use a designated texture or pure color to generate thumbnails instead of using prefabs.
+Generated thumbnails still follow the naming rules above."));
+                    GUILayout.FlexibleSpace();
+                    targetAsDesignatedTexture = GUILayout.Toggle(targetAsDesignatedTexture, "");
+                    if (!targetAsDesignatedTexture)
+                    {
+                        targetAsDesignatedTexture_failOnly = false;
+                    }
+                }
+                EditorGUILayout.EndHorizontal();
+                if (targetAsDesignatedTexture)
+                {
+                    EditorGUILayout.BeginHorizontal();
+                    {
+                        GUILayout.Label(new GUIContent("Texture", @"Adopt a texture in Asset to generate thumbnails.
+If texture slot is not 'None', pure color option is unavailable."));
+                        GUILayout.FlexibleSpace();
+                        targetImportedTexture = (Texture2D)EditorGUILayout.ObjectField(
+                                targetImportedTexture,
+                                typeof(Texture2D),
+                                false,
+                                GUILayout.Width(150)
+                            );
+                    }
+                    EditorGUILayout.EndHorizontal();
+                    EditorGUILayout.BeginHorizontal();
+                    {
+                        GUILayout.Label(new GUIContent("Pure Color", @"Use a pure color to generate thumbnails.
+Unavailbale if Texture is assigned."));
+                        GUILayout.FlexibleSpace();
+                        EditorGUI.BeginDisabledGroup(targetImportedTexture != null);
+                        targetPureColor = EditorGUILayout.ColorField(GUIContent.none, targetPureColor, true, false, false, GUILayout.Width(150));
+                        EditorGUI.EndDisabledGroup();
+                    }
+                    EditorGUILayout.EndHorizontal();
+                    EditorGUILayout.BeginHorizontal();
+                    {
+                        GUILayout.Label(new GUIContent("Enable Alpha", @""));
+                        GUILayout.FlexibleSpace();
+                        targetAsDesignatedTexture_isAlpha = GUILayout.Toggle(targetAsDesignatedTexture_isAlpha, "");
+                    }
+                    EditorGUILayout.EndHorizontal();
+                    EditorGUILayout.BeginHorizontal();
+                    {
+                        GUILayout.Label(new GUIContent("Only for Failed Prefabs", @"Will use Texture or Pure Color onto ONLY the prefabs that are failed to obtain their own thumbnails, such as prefabs of Lights.
+The good prefabs are still used in generating."));
+                        GUILayout.FlexibleSpace();
+                        targetAsDesignatedTexture_failOnly = GUILayout.Toggle(targetAsDesignatedTexture_failOnly, "");
+                    }
+                    EditorGUILayout.EndHorizontal();
+                }
+            }
+            EditorGUILayout.EndVertical();
+
 
             if (GUILayout.Button("Generate from Selected Prefabs") && !isProcessing)
             {
@@ -198,7 +278,6 @@ if (!targetReferenceMod){
             if (_doMessageBubble)
             {
                 EditorGUILayout.BeginHorizontal();
-                // EditorGUILayout.BeginHorizontal(EditorStyles.helpBox);
                 {
                     switch (_messageType)
                     {
@@ -289,12 +368,14 @@ if (!targetReferenceMod){
                 {
                     type = targetType,
                     compression = targetCompression,
-                    mipmap = targetMipMap
+                    mipmap = targetMipMap,
+                    alpha = targetAsDesignatedTexture_isAlpha
                 };
                 textureSet.SettingChangeProcess(_filePath);
 
                 // Debug.Log("All thumbnails saved!");
-                string _successProcessingMsg = (_failProcessingNumber == 0) ? "All thumbnails saved! " : "Not all thumbnails succefully generated. Perhaps some prefabs didn't have correct textures. " + @"
+                string _successProcessingMsg = (_failProcessingNumber == 0) ? "All thumbnails saved! " : @"Not all thumbnails succefully generated.
+Perhaps some prefabs didn't have correct textures, or were not ready in Unity. " + @"
 
     Successed: " + _successProcessingNumber + "; " + @"
     Failed: " + _failProcessingNumber + ". ";
@@ -310,13 +391,31 @@ if (!targetReferenceMod){
 
             SaveThumbnail(prefab, _savePath);
         }
+        Texture2D PureColorTex()
+        {
+            if (pureColorTex == null)
+            {
+                pureColorTex = new TextureGenerator(targetWidth, targetHeight, targetAsDesignatedTexture_isAlpha);
+            }
+            if (pureColorTex.color != targetPureColor)
+            {
+                pureColorTex.PureColor(targetPureColor);
+            }
+            return pureColorTex.tex;
+        }
         void SaveThumbnail(Object prefab, string _savePath)
         {
             // Request for the thumbnail.
-            Texture2D thumbnail = AssetPreview.GetAssetPreview(prefab);
-
-            // If not ready, wait for a retry.
-            if (thumbnail == null || AssetPreview.IsLoadingAssetPreview(prefab.GetInstanceID()))
+            Texture2D thumbnail = null;
+            if (!targetAsDesignatedTexture || (targetAsDesignatedTexture && targetAsDesignatedTexture_failOnly))
+            {
+                thumbnail = AssetPreview.GetAssetPreview(prefab);
+            }
+            if ((thumbnail == null && targetAsDesignatedTexture && targetAsDesignatedTexture_failOnly) || (targetAsDesignatedTexture && !targetAsDesignatedTexture_failOnly))
+            {
+                thumbnail = (targetImportedTexture != null) ? targetImportedTexture : PureColorTex();
+            }
+            if (thumbnail == null) // || AssetPreview.IsLoadingAssetPreview(prefab.GetInstanceID()))
             {
                 // prefabsToProcess.Add(prefab);
                 // savePath.Add(Path.GetDirectoryName(AssetDatabase.GetAssetPath(prefab)));
@@ -327,7 +426,8 @@ if (!targetReferenceMod){
             // Rescale the texture.
             RenderTexture rt = RenderTexture.GetTemporary(targetWidth, targetHeight);
             Graphics.Blit(thumbnail, rt);
-            Texture2D resized = new Texture2D(targetWidth, targetHeight);
+            TextureFormat _textureFormat = (targetAsDesignatedTexture_isAlpha) ? TextureFormat.RGBA32 : TextureFormat.RGB24;
+            Texture2D resized = new Texture2D(targetWidth, targetHeight, _textureFormat, targetMipMap);
             RenderTexture.active = rt;
             resized.ReadPixels(new Rect(0, 0, targetWidth, targetHeight), 0, 0);
             resized.Apply();
@@ -409,7 +509,7 @@ if (!targetReferenceMod){
             {
                 return "";
             }
-            
+
         }
     }
     public class ModXmlRead

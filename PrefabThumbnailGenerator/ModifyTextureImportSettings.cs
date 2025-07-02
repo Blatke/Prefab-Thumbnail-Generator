@@ -1,5 +1,5 @@
 // First created on June 14, 2025.
-// Version 1.0.1 on June 14, 2025.
+// Version 1.0.2 on July 3, 2025.
 
 #if UNITY_2020 || UNITY_2021 || UNITY_2022 || UNITY_2023 || UNITY_2024 || UNITY_6 || UNITY_7
 #define UNITY_2020_OR_NEWER
@@ -19,12 +19,13 @@ namespace Blatke.General.Texture
         public Dictionary<bool, string> mipmapOnMenu;
         public Dictionary<int, string> compressionOnMenu;
         public Dictionary<int, string> typeOnMenu;
+        public bool alpha = false;
 
         private TextureImporter importer;
 
-        public ModifyTextureImportSettings(bool _mipmap = false, int _compression = 0, int _type = 0)
+        public ModifyTextureImportSettings(bool _mipmap = false, int _compression = 0, int _type = 0, bool _alpha = false)
         {
-            mipmap = _mipmap; compression = _compression; type = _type;
+            mipmap = _mipmap; compression = _compression; type = _type; alpha = _alpha;
         }
         public void SettingChangeProcess(List<string> processedFiles)
         {
@@ -49,6 +50,7 @@ namespace Blatke.General.Texture
                 importer.mipmapEnabled = mipmap;
                 TexType(type);
                 TexCompression(compression);
+                importer.alphaIsTransparency = alpha;
                 importer.SaveAndReimport();
             }
         }

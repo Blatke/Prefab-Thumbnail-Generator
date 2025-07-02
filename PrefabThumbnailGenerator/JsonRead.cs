@@ -1,5 +1,5 @@
 ﻿// First created by Bl@ke on July 2, 2025.
-// Version 1.0.0 on July 2, 2025.
+// Version 1.0.1 on July 3, 2025.
 /*
 It requires Newtonsoft.Json to run this script, please download it at https://github.com/JamesNK/Newtonsoft.Json, if you don't have it in Unity.
 */
@@ -65,7 +65,8 @@ namespace Blatke.General.Json
             }
             else
             {
-                if (dict[str1] != str2){
+                if (dict[str1] != str2)
+                {
                     dict[str1] = str2;
                     isChanged = true;
                 }
@@ -115,6 +116,34 @@ namespace Blatke.General.Json
                     }
                 }
             }
+        }
+        public void SetRead(string _key, ref Vector4 variable, bool doUpdate = false)
+        {
+            string _read = Read(_key, doUpdate);
+            if (!string.IsNullOrEmpty(_read))
+            {
+                variable = ParseVector4(_read);
+            }
+        }
+        public Vector4 ParseVector4(string vectorString)
+        {
+            string cleaned = vectorString
+                .Replace("(", "")
+                .Replace(")", "")
+                .Replace(" ", "");
+            string[] components = cleaned.Split(',');
+            if (components.Length != 4)
+            {
+                return Vector4.zero;
+            }
+            if (float.TryParse(components[0], out float x) &&
+                float.TryParse(components[1], out float y) &&
+                float.TryParse(components[2], out float z) &&
+                float.TryParse(components[3], out float w))
+            {
+                return new Vector4(x, y, z, w);
+            }
+            return Vector4.zero;
         }
     }
 }
