@@ -34,6 +34,10 @@ If you haven't selected at least one prefab before clicking the button for gener
 
 ![2025-07-03_022351](https://github.com/user-attachments/assets/247a10d9-507f-4f3c-8d59-0c480963f4e4)
 
+Some of the options will pop tips if the mouse is hovering the texts:
+
+![2025-07-03_044939](https://github.com/user-attachments/assets/4ead3c2a-4293-4b96-86e0-75569fc02b41)
+
 ### Prefix & Suffix in Naming
 
 The thumbnails will be named same as the prefabs. You can choose to give them a prefix and suffix beside the names of thumbnails:
