@@ -20,8 +20,10 @@ Download the **Source code.zip** file for the latest version on the [Release](ht
 Drag and drop the .cs files which you suppose to use into your project folder, **Asset/Editor/**. If you don't have this **Editor** folder, you need to create one in the Asset folder. 
 
 > [!NOTE]
+>
+>  - Since the Generator is running in Unity Editor, ALL its script files have to be put in **Asset/Editor/** folder, as referred above. Otherwise, the Generator cannot start and leaves lots of alterts in the Console panel.
 > 
-> If you're updating this tool, please replace ALL the .cs files with the newly downloaded ones. Also, don't forget to RE-OPEN the Generator's window after finishing the updating.
+>  - If you're updating this tool, please replace ALL the .cs files with the newly downloaded ones. Also, don't forget to RE-OPEN the Generator's window after finishing the updating.
 
 ## Use It
 Go to Unity Editor, click the top menu: **Window -> Bl@ke -> Prefab Thumbnail Generator**, to show the window.
