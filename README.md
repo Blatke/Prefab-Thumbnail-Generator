@@ -13,7 +13,8 @@ Download the **Source code.zip** file for the latest version on the [Release](ht
 2. ModifyTextureImportSettings.cs
 3. PathHepler.cs
 4. PrefabThumbnailGenerator.cs
-5. XmlFileRead.cs
+5. TextureGenerator.cs
+6. XmlFileRead.cs
 
 Drag and drop the .cs files which you suppose to use into your project folder, **Asset/Editor/**. If you don't have this **Editor** folder, you need to create one in the Asset folder. 
 
