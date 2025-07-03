@@ -28,7 +28,7 @@ namespace Blatke.General.Texture
 {
     public class PrefabThumbnailGenerator : EditorWindow
     {
-        private static string windowTitle = "Prefab Thumbnail Generator v1.0.7";
+        private string windowTitle = "Prefab Thumbnail Generator 1.0.8";
         private string _settingFileName = "PrefabThumbnailGeneratorSettings.json";
         private bool _isSettingsAlreadyRead = false;
         private int targetWidth = 128;
@@ -66,8 +66,11 @@ namespace Blatke.General.Texture
         public static void ShowWindow()
         {
             var window = GetWindow<PrefabThumbnailGenerator>();
-            window.titleContent = new GUIContent(windowTitle);
             window.Show();
+        }
+        void OnEnable()
+        {            
+            titleContent = new GUIContent(windowTitle);
         }
         void SettingsInitialize()
         {
@@ -130,7 +133,7 @@ namespace Blatke.General.Texture
             SettingsInitialize();
             GUILayout.BeginHorizontal();
             {
-                GUILayout.Label("Prefab Thumbnail Settings", EditorStyles.boldLabel);
+                GUILayout.Label("Thumbnail Settings", EditorStyles.boldLabel);
                 GUILayout.FlexibleSpace();
                 if (GUILayout.Button("Save Settings"))
                 {
