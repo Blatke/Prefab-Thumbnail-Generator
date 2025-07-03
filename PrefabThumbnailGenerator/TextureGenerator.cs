@@ -1,5 +1,5 @@
 ﻿// First created by Bl@ke on July 2, 2025.
-// Version 1.0.1 on July 3, 2025.
+// Version 1.0.2 on July 3, 2025.
 
 using UnityEngine;
 using UnityEditor;
@@ -9,13 +9,13 @@ namespace Blatke.General.Texture
     public class TextureGenerator
     {
         public Texture2D tex;
-        public bool isChanged = false;
         public int width = 128;
         public int height = 128;
         public Vector4 color = new Vector4(1, 1, 1, 1);
         public TextureFormat textureFormat = TextureFormat.RGB24;
         public TextureGenerator(int _width = 128, int _height = 128, bool _isAlpha = false)
         {
+            Dispose();
             width = _width; height = _height;
             textureFormat = (_isAlpha) ? TextureFormat.RGBA32 : TextureFormat.RGB24;
             tex = new Texture2D(width, height, textureFormat, false);
@@ -31,9 +31,16 @@ namespace Blatke.General.Texture
             tex.SetPixels(pixels);
             tex.Apply();
         }
-        public void Initialize(bool _i = false)
+        public void Dispose()
         {
-            isChanged = _i;
+            if (tex != null)
+            {
+                if (!Application.isPlaying)
+                {
+                    Object.DestroyImmediate(tex);
+                }
+                tex = null;
+            }
         }
     }
 }

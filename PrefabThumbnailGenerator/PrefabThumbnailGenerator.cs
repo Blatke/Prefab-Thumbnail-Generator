@@ -1,5 +1,6 @@
 // First created by Bl@ke on June 14, 2025.
-// Version 1.0.7 on July 3, 2025.
+// https://github.com/Blatke/Prefab-Thumbnail-Generator
+// Version 1.0.8 on July 3, 2025.
 /*
 Guide:
 - If you update any scripts for this Generator, please re-open its window after the updating.
@@ -21,10 +22,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Blatke.General.Json;
 using Blatke.General.PathHepler;
-
-#if UNITY_2018
 using Blatke.General.XML;
-#endif
 
 namespace Blatke.General.Texture
 {
@@ -40,7 +38,6 @@ namespace Blatke.General.Texture
         private int targetCompression = 0;
         private int targetType = 0;
         private bool targetMipMap = false;
-        // #if UNITY_2018
         private bool targetReferenceMod = false;
         private bool targetSaveInThumbsFolder = false;
         private bool targetAsDesignatedTexture = false;
@@ -52,7 +49,6 @@ namespace Blatke.General.Texture
         // ===========
         private string _modXmlPath = "";
         private ModXmlRead m = null;
-        // #endif
         private List<string> savePath = new List<string>();
         private List<string> _filePath = new List<string>();
         private List<Object> prefabsToProcess = new List<Object>();
@@ -124,9 +120,11 @@ namespace Blatke.General.Texture
         }
         // void OnDisable(){
         // }
-        // void OnDestroy()
-        // {         
-        // }
+        void OnDestroy()
+        {
+            if (pureColorTex == null) return;
+            pureColorTex.Dispose();
+        }
         void OnGUI()
         {
             SettingsInitialize();
@@ -143,16 +141,14 @@ namespace Blatke.General.Texture
             GUILayout.EndHorizontal();
             targetWidth = EditorGUILayout.IntField("Width", targetWidth);
             targetHeight = EditorGUILayout.IntField("Height", targetHeight);
-#if UNITY_2018
-if (!targetReferenceMod){
-#endif
-            targetPrefix = EditorGUILayout.TextField("FileName Prefix", targetPrefix);
-            targetSuffix = EditorGUILayout.TextField("FileName Suffix", targetSuffix);
-#if UNITY_2018
-}
-#endif
 
-#if UNITY_2018_OR_NEWER
+            if (!targetReferenceMod)
+            {
+                targetPrefix = EditorGUILayout.TextField("FileName Prefix", targetPrefix);
+                targetSuffix = EditorGUILayout.TextField("FileName Suffix", targetSuffix);
+
+            }
+
             ModifyTextureImportSettings onPop = new ModifyTextureImportSettings();
             onPop.OnMenu();
 
@@ -160,9 +156,9 @@ if (!targetReferenceMod){
             {
                 GUILayout.Label("Texture Type");
                 targetType = EditorGUILayout.IntPopup(
-                    targetType, 
+                    targetType,
                     onPop.typeOnMenu.Values.ToArray(),
-                    onPop.typeOnMenu.Keys.ToArray(),                 
+                    onPop.typeOnMenu.Keys.ToArray(),
                     GUILayout.Width(130)
                 );
             }
@@ -171,9 +167,9 @@ if (!targetReferenceMod){
             {
                 GUILayout.Label("Compression");
                 targetCompression = EditorGUILayout.IntPopup(
-                    targetCompression, 
+                    targetCompression,
                     onPop.compressionOnMenu.Values.ToArray(),
-                    onPop.compressionOnMenu.Keys.ToArray(),                 
+                    onPop.compressionOnMenu.Keys.ToArray(),
                     GUILayout.Width(130)
                 );
             }
@@ -183,32 +179,29 @@ if (!targetReferenceMod){
             {
                 GUILayout.Label("Generate MipMap");
                 GUILayout.FlexibleSpace();
-                targetMipMap = GUILayout.Toggle(targetMipMap,"");
-            }            
+                targetMipMap = GUILayout.Toggle(targetMipMap, "");
+            }
             GUILayout.EndHorizontal();
-#endif
 
-#if UNITY_2018
             GUILayout.BeginHorizontal();
             {
                 GUILayout.Label(new GUIContent("Name by 'mod.xml' for StuioItem", @"Will read mod.xml/mod.sxml outside current folder.
 If no corresponding tags found there, it will instead use prefab name."));
                 GUILayout.FlexibleSpace();
-                targetReferenceMod = GUILayout.Toggle(targetReferenceMod,"");
-            }            
+                targetReferenceMod = GUILayout.Toggle(targetReferenceMod, "");
+            }
             GUILayout.EndHorizontal();
 
             // if (targetReferenceMod){
-                GUILayout.BeginHorizontal();
-                {
-                    GUILayout.Label(new GUIContent("Save in 'thumbs' Folder", @"Will save thumbnails in 'thumbs' folder outside current folder.
+            GUILayout.BeginHorizontal();
+            {
+                GUILayout.Label(new GUIContent("Save in 'thumbs' Folder", @"Will save thumbnails in 'thumbs' folder outside current folder.
 If no such this folder found, it will create one."));
-                    GUILayout.FlexibleSpace();
-                    targetSaveInThumbsFolder = GUILayout.Toggle(targetSaveInThumbsFolder,"");
-                }
-                GUILayout.EndHorizontal();
+                GUILayout.FlexibleSpace();
+                targetSaveInThumbsFolder = GUILayout.Toggle(targetSaveInThumbsFolder, "");
+            }
+            GUILayout.EndHorizontal();
             // }
-#endif
 
             EditorGUILayout.BeginVertical(GUI.skin.box);
             {
@@ -437,9 +430,14 @@ Perhaps some prefabs didn't have correct textures, or were not ready in Unity. "
             // Save it as PNG.
             byte[] bytes = resized.EncodeToPNG();
 
+            if (resized != null && !Application.isPlaying)
+            {
+                Object.DestroyImmediate(resized);
+                resized = null;
+            }
+
             string image_fileName = "";
 
-#if UNITY_2018
             // Reference mod.xml to name images.
             if (targetReferenceMod)
             {
@@ -450,19 +448,16 @@ Perhaps some prefabs didn't have correct textures, or were not ready in Unity. "
                 }
                 image_fileName = ReferenceModXML(_modXmlPath, prefab.name);
             }
-#endif
             if (string.IsNullOrEmpty(image_fileName))
             {
                 image_fileName = targetPrefix + prefab.name + targetSuffix;
             }
 
-#if UNITY_2018
             if (targetSaveInThumbsFolder)
             {
                 DirectoryInfo _parentOfCurrentFolder = Directory.GetParent(_savePath);
                 _savePath = Path.Combine(_parentOfCurrentFolder.ToString(), "thumbs");
             }
-#endif
 
             SavePathCheck(_savePath);
             string filePath = Path.Combine(_savePath, image_fileName + ".png");
