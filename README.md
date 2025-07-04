@@ -2,7 +2,7 @@
 Unity scripts for generating thumbnails from selected prefabs.
 It reads the built-in thumbnails of selected prefabs in generating, and such built-in thumbnails were created as their prefabs were created.
 
-![2025-07-04_163343](https://github.com/user-attachments/assets/d158f15f-fcde-40a1-a690-fe2608fad1f8)
+![2025-07-04_194654](https://github.com/user-attachments/assets/505fb1d3-f89e-46da-b7a6-03850c655d9b)
 
 ## Requirements
 1. **Unity Editor** with the version newer than 2018.1.
@@ -16,6 +16,7 @@ Download the **Source code.zip** file for the latest version on the [Release](ht
 4. PrefabThumbnailGenerator.cs
 5. TextureGenerator.cs
 6. XmlFileRead.cs
+7. FileNaming.cs
 
 Drag and drop ALL the .cs files into your project folder, **Asset/Editor/**. If you don't have this **Editor** folder, you need to create one in the Asset folder. 
 
@@ -48,9 +49,21 @@ The thumbnails will be named same as the prefabs. We can choose to give them a p
 
 ### Include Images and Materials
 
-Sometimes we also want to resize images, or generate the thumbnails from materials. So, check "Include Images" or "Include Materials", and the Generator will also generate thumbnails from our selected images or materials:
+Sometimes we also want to resize images, or generate the thumbnails from materials. So, check **"Include Images"** or **"Include Materials"**, and the Generator will also generate thumbnails from our selected images or materials:
 
 ![2025-07-04_163904](https://github.com/user-attachments/assets/556a3ea1-c205-4669-a89e-eb4acb298d0c)
+
+Without "Include Images" or "Include Materials" being checked, the Generator will not process images or materials.
+
+### Avoid Repeated-Names
+
+If a particular object such as a prefab, image or material is refenerced in thumbnail generating, and the file name the generated thumbnail supposes to use is same to an existing image at the same path, let us say, _"Assets/Folder/thumb_A.png"_, the generated thumbnail will overwrite it. 
+
+To avoid this overwriting problem, we can check **"Rename Name-Repeated Thumbs"** to give another name to these sort of newly generated thumbnails according to the way that Unity treats to the imported files with repeated names. 
+
+![2025-07-04_202719](https://github.com/user-attachments/assets/884c860d-465e-43e7-87ea-4e0f15ff3220)
+
+So if a newly generated thumbnail is _"Assets/Folder/thumb_A.png"_ and is repeated to an existing one, the earlier will be renamed to _"Assets/Folder/thumb_A 1.png"_. If the renamed one still meets repeated, it will then be renamed to _"Assets/Folder/thumb_A 2.png"_, and so forth... till it is unique to all the existing images at the same path.
 
 ### "Good" and "Failed" Prefabs
 
