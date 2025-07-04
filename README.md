@@ -2,7 +2,7 @@
 Unity scripts for generating thumbnails from selected prefabs.
 It reads the built-in thumbnails of selected prefabs in generating, and such built-in thumbnails were created as their prefabs were created.
 
-![2025-07-03_021725](https://github.com/user-attachments/assets/cb7e650c-a447-47ec-bab8-a374f4975acf)
+![2025-07-04_163343](https://github.com/user-attachments/assets/d158f15f-fcde-40a1-a690-fe2608fad1f8)
 
 ## Requirements
 1. **Unity Editor** with the version newer than 2018.1.
@@ -42,9 +42,15 @@ Some of the options will pop tips if the mouse is hovering the texts:
 
 ### Prefix & Suffix in Naming
 
-The thumbnails will be named same as the prefabs. You can choose to give them a prefix and suffix beside the names of thumbnails:
+The thumbnails will be named same as the prefabs. We can choose to give them a prefix and suffix beside the names of thumbnails:
 
 ![2025-07-03_022307](https://github.com/user-attachments/assets/4333b5e5-c9b9-4aab-9224-af7c68d6ffb8)
+
+### Include Images and Materials
+
+Sometimes we also want to resize images, or generate the thumbnails from materials. So, check "Include Images" or "Include Materials", and the Generator will also generate thumbnails from our selected images or materials:
+
+![2025-07-04_163904](https://github.com/user-attachments/assets/556a3ea1-c205-4669-a89e-eb4acb298d0c)
 
 ### "Good" and "Failed" Prefabs
 
