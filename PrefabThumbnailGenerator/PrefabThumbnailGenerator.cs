@@ -1,6 +1,6 @@
 // First created by Bl@ke on June 14, 2025.
 // https://github.com/Blatke/Prefab-Thumbnail-Generator
-// Version 1.0.8 on July 3, 2025.
+// Version 1.0.9 on July 4, 2025.
 /*
 Guide:
 - If you update any scripts for this Generator, please re-open its window after the updating.
@@ -28,7 +28,7 @@ namespace Blatke.General.Texture
 {
     public class PrefabThumbnailGenerator : EditorWindow
     {
-        private string windowTitle = "Prefab Thumbnail Generator 1.0.8";
+        private string windowTitle = "Prefab Thumbnail Generator 1.0.9";
         private string _settingFileName = "PrefabThumbnailGeneratorSettings.json";
         private bool _isSettingsAlreadyRead = false;
         private int targetWidth = 128;
@@ -38,6 +38,8 @@ namespace Blatke.General.Texture
         private int targetCompression = 0;
         private int targetType = 0;
         private bool targetMipMap = false;
+        private bool targetAllows_Image = false;
+        private bool targetAllows_Material = false;
         private bool targetReferenceMod = false;
         private bool targetSaveInThumbsFolder = false;
         private bool targetAsDesignatedTexture = false;
@@ -45,8 +47,10 @@ namespace Blatke.General.Texture
         private Vector4 targetPureColor = new Vector4(1, 1, 1, 1);
         private bool targetAsDesignatedTexture_isAlpha = false;
         private bool targetAsDesignatedTexture_failOnly = false;
+        private bool targetRepeatedFileReName = false;
 
         // ===========
+
         private string _modXmlPath = "";
         private ModXmlRead m = null;
         private List<string> savePath = new List<string>();
@@ -60,7 +64,7 @@ namespace Blatke.General.Texture
         private int _successProcessingNumber = 0;
         private JsonRead jr;
         private TextureGenerator pureColorTex;
-        // private CancellationTokenSource _cancellationTokenSource;
+        private FileNaming _repeatedFileNames = new FileNaming();
 
         [MenuItem("Window/Bl@ke/Prefab Thumbnail Generator")]
         public static void ShowWindow()
@@ -87,11 +91,14 @@ namespace Blatke.General.Texture
             jr.SetRead("targetCompression", ref targetCompression);
             jr.SetRead("targetType", ref targetType);
             jr.SetRead("targetMipMap", ref targetMipMap);
+            jr.SetRead("targetAllows_Image", ref targetAllows_Image);
+            jr.SetRead("targetAllows_Material", ref targetAllows_Material);
             jr.SetRead("targetReferenceMod", ref targetReferenceMod);
             jr.SetRead("targetSaveInThumbsFolder", ref targetSaveInThumbsFolder);
             jr.SetRead("targetAsDesignatedTexture", ref targetAsDesignatedTexture);
             jr.SetRead("targetPureColor", ref targetPureColor);
             jr.SetRead("targetAsDesignatedTexture_isAlpha", ref targetAsDesignatedTexture_isAlpha);
+            jr.SetRead("targetRepeatedFileReName", ref targetRepeatedFileReName);
         }
         void SettingsUpdate()
         {
@@ -102,11 +109,14 @@ namespace Blatke.General.Texture
             jr.Write("" + nameof(targetCompression) + "", "" + targetCompression);
             jr.Write("" + nameof(targetType) + "", "" + targetType);
             jr.Write("" + nameof(targetMipMap) + "", "" + targetMipMap);
+            jr.Write("" + nameof(targetAllows_Image) + "", "" + targetAllows_Image);
+            jr.Write("" + nameof(targetAllows_Material) + "", "" + targetAllows_Material);
             jr.Write("" + nameof(targetReferenceMod) + "", "" + targetReferenceMod);
             jr.Write("" + nameof(targetSaveInThumbsFolder) + "", "" + targetSaveInThumbsFolder);
             jr.Write("" + nameof(targetAsDesignatedTexture) + "", "" + targetAsDesignatedTexture);
             jr.Write("" + nameof(targetPureColor) + "", "" + targetPureColor);
             jr.Write("" + nameof(targetAsDesignatedTexture_isAlpha) + "", "" + targetAsDesignatedTexture_isAlpha);
+            jr.Write("" + nameof(targetRepeatedFileReName) + "", "" + targetRepeatedFileReName);
             if (jr.isChanged)
             {
                 jr.Update();
@@ -188,6 +198,24 @@ namespace Blatke.General.Texture
 
             GUILayout.BeginHorizontal();
             {
+                GUILayout.Label(new GUIContent("Include Images", @"Will also reference to selected images beside prefabs.
+Otherwise, selected images will fail in generating."));
+                GUILayout.FlexibleSpace();
+                targetAllows_Image = GUILayout.Toggle(targetAllows_Image, "");
+            }
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            {
+                GUILayout.Label(new GUIContent("Include Materials", @"Will also reference to selected materials beside prefabs.
+Otherwise, selected materials will fail in generating."));
+                GUILayout.FlexibleSpace();
+                targetAllows_Material = GUILayout.Toggle(targetAllows_Material, "");
+            }
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            {
                 GUILayout.Label(new GUIContent("Name by 'mod.xml' for StuioItem", @"Will read mod.xml/mod.sxml outside current folder.
 If no corresponding tags found there, it will instead use prefab name."));
                 GUILayout.FlexibleSpace();
@@ -264,6 +292,14 @@ The good prefabs are still used in generating."));
             }
             EditorGUILayout.EndVertical();
 
+            GUILayout.BeginHorizontal();
+            {
+                GUILayout.Label(new GUIContent("Rename Name-Repeated Thumbs", @"If generated thumbnails have same names to existing images. It will rename generated thumbnails by adding a number to their tails.
+Otherwise, generated thumbnails will overwrite existing repeated images, even including newly generated ones."), EditorStyles.boldLabel);
+                GUILayout.FlexibleSpace();
+                targetRepeatedFileReName = GUILayout.Toggle(targetRepeatedFileReName, "");
+            }
+            GUILayout.EndHorizontal();
 
             if (GUILayout.Button("Generate from Selected Prefabs") && !isProcessing)
             {
@@ -324,10 +360,21 @@ The good prefabs are still used in generating."));
             _successProcessingNumber = 0;
             prefabsToProcess.Clear();
             savePath.Clear();
+            _filePath.Clear();
+            _repeatedFileNames.Clear();
             _modXmlPath = "";
             foreach (Object obj in Selection.objects)
             {
-                if (obj is GameObject)// || obj is Material || obj is Texture2D)
+                bool _isSelectedObjAllowed = (obj is GameObject);
+                if (targetAllows_Image)
+                {
+                    _isSelectedObjAllowed = (obj is Texture2D) ? true : _isSelectedObjAllowed;
+                }
+                if (targetAllows_Material)
+                {
+                    _isSelectedObjAllowed = (obj is Material) ? true : _isSelectedObjAllowed;
+                }
+                if (_isSelectedObjAllowed)
                 {
                     prefabsToProcess.Add(obj);
                     savePath.Add(Path.GetDirectoryName(AssetDatabase.GetAssetPath(obj)));
@@ -406,15 +453,19 @@ Perhaps some prefabs didn't have correct textures, or were not ready in Unity. "
             if (!targetAsDesignatedTexture || (targetAsDesignatedTexture && targetAsDesignatedTexture_failOnly))
             {
                 thumbnail = AssetPreview.GetAssetPreview(prefab);
+                if (thumbnail == null && AssetPreview.IsLoadingAssetPreview(prefab.GetInstanceID()))
+                {
+                    prefabsToProcess.Add(prefab);
+                    savePath.Add(Path.GetDirectoryName(AssetDatabase.GetAssetPath(prefab)));
+                    return;
+                }
             }
             if ((thumbnail == null && targetAsDesignatedTexture && targetAsDesignatedTexture_failOnly) || (targetAsDesignatedTexture && !targetAsDesignatedTexture_failOnly))
             {
                 thumbnail = (targetImportedTexture != null) ? targetImportedTexture : PureColorTex();
             }
-            if (thumbnail == null) // || AssetPreview.IsLoadingAssetPreview(prefab.GetInstanceID()))
+            if (thumbnail == null)
             {
-                // prefabsToProcess.Add(prefab);
-                // savePath.Add(Path.GetDirectoryName(AssetDatabase.GetAssetPath(prefab)));
                 _failProcessingNumber += 1;
                 return;
             }
@@ -463,7 +514,17 @@ Perhaps some prefabs didn't have correct textures, or were not ready in Unity. "
             }
 
             SavePathCheck(_savePath);
-            string filePath = Path.Combine(_savePath, image_fileName + ".png");
+
+            string filePath;
+            if (targetRepeatedFileReName)
+            {
+                filePath = _repeatedFileNames.FileName(_savePath, image_fileName, "png");
+            }
+            else
+            {
+                filePath = Path.Combine(_savePath, image_fileName + ".png");
+            }
+
             _filePath.Add(filePath);
             File.WriteAllBytes(filePath, bytes);
             _successProcessingNumber += 1;
