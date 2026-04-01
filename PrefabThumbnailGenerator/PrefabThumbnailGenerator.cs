@@ -1,6 +1,6 @@
 // First created by Bl@ke on June 14, 2025.
 // https://github.com/Blatke/Prefab-Thumbnail-Generator
-// Version 1.0.9 on July 4, 2025.
+// Version 1.1.0 on April 1, 2026.
 /*
 Guide:
 - If you update any scripts for this Generator, please re-open its window after the updating.
@@ -23,6 +23,8 @@ using System.Threading.Tasks;
 using Blatke.General.Json;
 using Blatke.General.PathHepler;
 using Blatke.General.XML;
+// using System.Drawing;
+// using System.Diagnostics;
 
 namespace Blatke.General.Texture
 {
@@ -48,6 +50,10 @@ namespace Blatke.General.Texture
         private bool targetAsDesignatedTexture_isAlpha = false;
         private bool targetAsDesignatedTexture_failOnly = false;
         private bool targetRepeatedFileReName = false;
+        private bool useWaterMark = false;
+        private Texture2D waterMarkTex;
+        private Color[] waterMarkPixels;
+
 
         // ===========
 
@@ -99,6 +105,7 @@ namespace Blatke.General.Texture
             jr.SetRead("targetPureColor", ref targetPureColor);
             jr.SetRead("targetAsDesignatedTexture_isAlpha", ref targetAsDesignatedTexture_isAlpha);
             jr.SetRead("targetRepeatedFileReName", ref targetRepeatedFileReName);
+            jr.SetRead("useWaterMark", ref useWaterMark);
         }
         void SettingsUpdate()
         {
@@ -117,6 +124,7 @@ namespace Blatke.General.Texture
             jr.Write("" + nameof(targetPureColor) + "", "" + targetPureColor);
             jr.Write("" + nameof(targetAsDesignatedTexture_isAlpha) + "", "" + targetAsDesignatedTexture_isAlpha);
             jr.Write("" + nameof(targetRepeatedFileReName) + "", "" + targetRepeatedFileReName);
+            jr.Write("" + nameof(useWaterMark) + "", "" + useWaterMark);
             if (jr.isChanged)
             {
                 jr.Update();
@@ -292,6 +300,35 @@ The good prefabs are still used in generating."));
             }
             EditorGUILayout.EndVertical();
 
+            EditorGUILayout.BeginVertical(GUI.skin.box);
+            {
+                EditorGUILayout.BeginHorizontal();
+                {
+                    GUILayout.Label(new GUIContent("Use Watermark", @"Will add a designated texture as a watermark to generated thumbnails."));
+                    GUILayout.FlexibleSpace();
+                    useWaterMark = GUILayout.Toggle(useWaterMark, "");
+                }
+                EditorGUILayout.EndHorizontal();
+                if (useWaterMark)
+                {
+                    EditorGUILayout.BeginHorizontal();
+                    {
+                        GUILayout.Label(new GUIContent("Watermark Texture", @"Adopt a texture in Asset as the watermark. Please make sure:
+  1. ""Read/Write Enabled"" is checkedin Import Settings of the texture. Otherwise, it will fail in adding watermark, but continue in generating thumbnails without watermark.
+  2. The texture is the same size as the generated thumbnails. Otherwise, the watermark will be stretched to fit the thumbnail size, which may cause unexpected visual effect."));
+                        GUILayout.FlexibleSpace();
+                        waterMarkTex = (Texture2D)EditorGUILayout.ObjectField(
+                                waterMarkTex,
+                                typeof(Texture2D),
+                                false,
+                                GUILayout.Width(150)
+                            );
+                    }
+                    EditorGUILayout.EndHorizontal();
+                }
+            }
+            EditorGUILayout.EndVertical();
+
             GUILayout.BeginHorizontal();
             {
                 GUILayout.Label(new GUIContent("Rename Name-Repeated Thumbs", @"If generated thumbnails have same names to existing images. It will rename generated thumbnails by adding a number to their tails.
@@ -363,6 +400,18 @@ Otherwise, generated thumbnails will overwrite existing repeated images, even in
             _filePath.Clear();
             _repeatedFileNames.Clear();
             _modXmlPath = "";
+
+            // Prepare watermark pixels if needed.
+            if (useWaterMark && waterMarkTex != null){
+                if (!waterMarkTex.isReadable)
+                {
+                    Debug.LogError("Source texture is not readable. Enable Read/Write in import settings. Thumbnail generation will continue without watermark.");
+                    useWaterMark = false;
+                }else{
+                waterMarkPixels = waterMarkTex.GetPixels(0,0,waterMarkTex.width, waterMarkTex.height);
+                }
+            }
+
             foreach (Object obj in Selection.objects)
             {
                 bool _isSelectedObjAllowed = (obj is GameObject);
@@ -481,13 +530,39 @@ Perhaps some prefabs didn't have correct textures, or were not ready in Unity. "
             RenderTexture.ReleaseTemporary(rt);
             RenderTexture.active = null;
 
+            // Add watermark if needed.
+            Texture2D watermarkAddedTexture = null;
+            if (useWaterMark && waterMarkTex != null && waterMarkPixels != null && waterMarkPixels.Length > 0)
+            {
+                Debug.Log("Adding watermark to thumbnail of prefab: " + waterMarkTex.name);
+                Color[] originalPixels = resized.GetPixels(0, 0, targetWidth, targetHeight);
+                Color[] watermarkAddedPixels = new Color[targetHeight * targetWidth];
+                for (int i = 0; i < watermarkAddedPixels.Length; i++)
+                {
+                    Color originalColor = originalPixels[i];
+                    Color watermarkColor = waterMarkPixels[i];
+                    // Simple alpha blending
+                    float alpha = watermarkColor.a;
+                    watermarkAddedPixels[i] = Color.Lerp(originalColor, watermarkColor, alpha);
+                }
+
+                watermarkAddedTexture = new Texture2D(targetWidth, targetHeight, _textureFormat, targetMipMap);
+                watermarkAddedTexture.SetPixels(watermarkAddedPixels);
+                watermarkAddedTexture.Apply();
+            }
+
             // Save it as PNG.
-            byte[] bytes = resized.EncodeToPNG();
+            byte[] bytes = (watermarkAddedTexture!=null) ? watermarkAddedTexture.EncodeToPNG() : resized.EncodeToPNG();
 
             if (resized != null && !Application.isPlaying)
             {
                 Object.DestroyImmediate(resized);
                 resized = null;
+            }
+            if (watermarkAddedTexture != null && !Application.isPlaying)
+            {
+                    Object.DestroyImmediate(watermarkAddedTexture);
+                    watermarkAddedTexture = null;
             }
 
             string image_fileName = "";
