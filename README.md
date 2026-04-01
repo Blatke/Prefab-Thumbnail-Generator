@@ -83,6 +83,26 @@ If **"Only for Failed Prefabs"** is checked, the Generator will reference to the
 
 ![2025-07-03_023823](https://github.com/user-attachments/assets/003de375-0d7e-4459-88da-7698be20006a)
 
+### Use Watermark
+You can adopt a texture as a watermark adding to the thumbnail during the generation.
+1. Prepare a texture as the watermark. The alpha values in the texture indicate the weights of the watermark blending with the thumbnail. The size of the texture image has to be equal to that of the thumbnail about to be generated, otherwise, the watermark has to be scratched.
+
+Such like the following texture:
+<img width="128" height="128" alt="watermark" src="https://github.com/user-attachments/assets/589e112a-5bde-4f7c-830b-16fdb4442ebe" />
+
+2. After importing the watermark texture in Unity, make sure the options of **"Alpha is Transparency"** as well as **"Read/Write Enabled" is checked**. Also, **"Use Crunch Compression" must remain unchecked**.
+
+![2026-04-01_193445](https://github.com/user-attachments/assets/e0363d31-a57a-4afa-b661-258b9507c3da)
+
+3. On the Generator tab, check "Use Watermark", and then assign "Watermark Texture" to your prepared watermark.
+
+![2026-04-01_192004](https://github.com/user-attachments/assets/7572b904-fd15-4196-852b-5d98761745d3)
+
+4. Generate the thumbnail, and you would got this following effect. If the watermark is not correctly arranged, it only generate the thumbnail without a watermark.
+
+<img width="128" height="128" alt="thumb_body skin" src="https://github.com/user-attachments/assets/9480b2ce-368d-4076-b67a-db5d9920c677" />
+
+
 ### Save Settings
 You can click **"Save Settings"** button at the right-top to persist your adjustments in settings:
 
