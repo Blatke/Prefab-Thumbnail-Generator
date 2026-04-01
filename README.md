@@ -2,7 +2,7 @@
 Unity scripts for generating thumbnails from selected prefabs.
 It reads the built-in thumbnails of selected prefabs in generating, and such built-in thumbnails were created as their prefabs were created.
 
-![2025-07-04_194654](https://github.com/user-attachments/assets/505fb1d3-f89e-46da-b7a6-03850c655d9b)
+![2026-04-01_191828](https://github.com/user-attachments/assets/ba9e18f3-80d7-4764-8085-2f86e7502a87)
 
 ## Requirements
 1. **Unity Editor** with the version newer than 2018.1.
