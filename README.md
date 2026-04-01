@@ -2,7 +2,7 @@
 Unity scripts for generating thumbnails from selected prefabs.
 It reads the built-in thumbnails of selected prefabs in generating, and such built-in thumbnails were created as their prefabs were created.
 
-![2026-04-01_191828](https://github.com/user-attachments/assets/ba9e18f3-80d7-4764-8085-2f86e7502a87)
+![2026-04-01_230305](https://github.com/user-attachments/assets/07069dd6-b52d-4937-8068-6da082b9fcd6)
 
 ## Requirements
 1. **Unity Editor** with the version newer than 2018.1.
@@ -89,7 +89,7 @@ You can adopt a texture as a watermark adding to the thumbnail during the genera
 
 The alpha values in the texture indicate the weights of the watermark blending with the thumbnail. 
 
-The texture should have the same size as the generated thumbnails. Otherwise, the watermark might be splited to fit the thumbnail size, or will not apply, which may cause unexpected visual effect.
+The texture should have the same size as the generated thumbnails. Otherwise, the watermark might be split to fit the thumbnail size, or will not apply, which may cause unexpected visual effect.
 
 Such like the following texture:
 
@@ -107,6 +107,20 @@ Such like the following texture:
 
 <img width="128" height="128" alt="thumb_body skin" src="https://github.com/user-attachments/assets/9480b2ce-368d-4076-b67a-db5d9920c677" />
 
+### Background Color Replace
+The default background color of prefab (and other assets) is #525252, and this leads to the same background color of generated thumbnails, such like:
+
+<img width="128" height="128" alt="thumb_body skin" src="https://github.com/user-attachments/assets/a32656d2-007d-4fc0-b681-2a3d48ab3ce7" />
+
+This option will replace it with a designated one. 
+
+<img width="356" height="58" alt="image" src="https://github.com/user-attachments/assets/6bfec4f4-e0e2-4a7b-841b-bf25506f693b" />
+
+The replaced result is:
+
+<img width="128" height="128" alt="thumb_body skin 1" src="https://github.com/user-attachments/assets/ba41050f-7810-4851-a590-bf16b0f7d456" />
+
+However, any other parts in the generated thumbnails with the same color will also be replaced, which may cause unexpected visual effect. Please use this option carefully.
 
 ### Save Settings
 You can click **"Save Settings"** button at the right-top to persist your adjustments in settings:
