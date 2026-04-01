@@ -1,6 +1,6 @@
 // First created by Bl@ke on June 14, 2025.
 // https://github.com/Blatke/Prefab-Thumbnail-Generator
-// Version 1.1.0 on April 1, 2026.
+// Version 1.1.1 on April 1, 2026.
 /*
 Guide:
 - If you update any scripts for this Generator, please re-open its window after the updating.
@@ -30,7 +30,7 @@ namespace Blatke.General.Texture
 {
     public class PrefabThumbnailGenerator : EditorWindow
     {
-        private string windowTitle = "Prefab Thumbnail Generator 1.1.0";
+        private string windowTitle = "Prefab Thumbnail Generator 1.1.1";
         private string _settingFileName = "PrefabThumbnailGeneratorSettings.json";
         private bool _isSettingsAlreadyRead = false;
         private int targetWidth = 128;
@@ -53,6 +53,8 @@ namespace Blatke.General.Texture
         private bool useWaterMark = false;
         private Texture2D waterMarkTex;
         private Color[] waterMarkPixels;
+        private bool bgReplace = false;
+        private Vector4 bgReplaceColor = new Vector4(1, 1, 1, 1);
 
 
         // ===========
@@ -107,6 +109,8 @@ namespace Blatke.General.Texture
             jr.SetRead("targetAsDesignatedTexture_isAlpha", ref targetAsDesignatedTexture_isAlpha);
             jr.SetRead("targetRepeatedFileReName", ref targetRepeatedFileReName);
             jr.SetRead("useWaterMark", ref useWaterMark);
+            jr.SetRead("bgReplace", ref bgReplace);
+            jr.SetRead("bgReplaceColor", ref bgReplaceColor);
         }
         void SettingsUpdate()
         {
@@ -126,6 +130,9 @@ namespace Blatke.General.Texture
             jr.Write("" + nameof(targetAsDesignatedTexture_isAlpha) + "", "" + targetAsDesignatedTexture_isAlpha);
             jr.Write("" + nameof(targetRepeatedFileReName) + "", "" + targetRepeatedFileReName);
             jr.Write("" + nameof(useWaterMark) + "", "" + useWaterMark);
+            jr.Write("" + nameof(bgReplace) + "", "" + bgReplace);
+            jr.Write("" + nameof(bgReplaceColor) + "", "" + bgReplaceColor);
+
             if (jr.isChanged)
             {
                 jr.Update();
@@ -320,7 +327,7 @@ The good prefabs are still used in generating."));
                     {
                         GUILayout.Label(new GUIContent("Watermark Texture", @"Adopt a texture in Asset as the watermark. Please make sure:
   1. ""Read/Write Enabled"" is checkedin Import Settings of the texture. Otherwise, it will fail in adding watermark, but continue in generating thumbnails without watermark.
-  2. The texture should have the same size as the generated thumbnails. Otherwise, the watermark might be splited to fit the thumbnail size, or will not apply, which may cause unexpected visual effect."));
+  2. The texture should have the same size as the generated thumbnails. Otherwise, the watermark might be split to fit the thumbnail size, or will not apply, which may cause unexpected visual effect."));
                         GUILayout.FlexibleSpace();
                         waterMarkTex = (Texture2D)EditorGUILayout.ObjectField(
                                 waterMarkTex,
@@ -330,6 +337,28 @@ The good prefabs are still used in generating."));
                             );
                     }
                     EditorGUILayout.EndHorizontal();
+                }
+            }
+            EditorGUILayout.EndVertical();
+
+            EditorGUILayout.BeginVertical(GUI.skin.box);
+            {
+                EditorGUILayout.BeginHorizontal();
+                {
+                    GUILayout.Label(new GUIContent("Background Color Replace", @"Default background color is #525252. This option will replace it with a designated one. 
+However, any other parts in the generated thumbnails with the same color will also be replaced, which may cause unexpected visual effect. Please use this option carefully."));
+                    GUILayout.FlexibleSpace();
+                    bgReplace = GUILayout.Toggle(bgReplace, "");
+                }
+                EditorGUILayout.EndHorizontal();
+                if (bgReplace)
+                {
+                    EditorGUILayout.BeginHorizontal();
+                    {
+                        GUILayout.Label(new GUIContent("Replace Color", @"Set the color to replace the background color."));
+                        bgReplaceColor = EditorGUILayout.ColorField(GUIContent.none, bgReplaceColor, true, false, false, GUILayout.Width(150));
+                    }
+                    EditorGUILayout.EndVertical();
                 }
             }
             EditorGUILayout.EndVertical();
@@ -535,6 +564,24 @@ Perhaps some prefabs didn't have correct textures, or were not ready in Unity. "
             RenderTexture.ReleaseTemporary(rt);
             RenderTexture.active = null;
 
+            Color[] originalPixels = null;
+            // Replace background color with transparent.
+            if (bgReplace)
+            {                
+                if (originalPixels == null || originalPixels.Length == 0)
+                    originalPixels = resized.GetPixels(0, 0, targetWidth, targetHeight);
+                Color bgColor = new Color(82f / 255f, 82f / 255f, 82f / 255f);
+                for (int i = 0; i < originalPixels.Length; i++)
+                {
+                    if (originalPixels[i].Equals(bgColor))
+                    {
+                        originalPixels[i] = bgReplaceColor;
+                    }
+                }
+                resized.SetPixels(originalPixels);
+                resized.Apply();
+            }
+
             // Add watermark if needed.
             Texture2D watermarkAddedTexture = null;
             if (_useWatermarkInProcess && waterMarkTex != null && (waterMarkTex.width < targetWidth || waterMarkTex.height < targetHeight))
@@ -545,7 +592,8 @@ Perhaps some prefabs didn't have correct textures, or were not ready in Unity. "
             if (_useWatermarkInProcess && waterMarkTex != null && waterMarkPixels != null && waterMarkPixels.Length > 0)
             {
                 // Debug.Log("Adding watermark to thumbnail of prefab: " + waterMarkTex.name);
-                Color[] originalPixels = resized.GetPixels(0, 0, targetWidth, targetHeight);
+                if (originalPixels == null || originalPixels.Length == 0)
+                    originalPixels = resized.GetPixels(0, 0, targetWidth, targetHeight);
                 Color[] watermarkAddedPixels = new Color[targetHeight * targetWidth];
                 for (int i = 0; i < originalPixels.Length; i++)
                 {
