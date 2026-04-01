@@ -357,7 +357,8 @@ However, any other parts in the generated thumbnails with the same color will al
                 {
                     EditorGUILayout.BeginHorizontal();
                     {
-                        GUILayout.Label(new GUIContent("Replace Color", @"Set the color to replace the background color."));
+                        GUILayout.Label(new GUIContent("Replace Color", @"Set the color to replace the background color.
+To use this color, instead of a texture, in replacing background, please make sure the following texture slot is 'None'."));
                         bgReplaceColor = EditorGUILayout.ColorField(GUIContent.none, bgReplaceColor, true, true, false, GUILayout.Width(150));
                     }
                     EditorGUILayout.EndVertical();
@@ -365,7 +366,8 @@ However, any other parts in the generated thumbnails with the same color will al
                     {
                         GUILayout.Label(new GUIContent("Replace Texture", @"Adopt a texture in Asset as the background texture. Please make sure:
   1. ""Read/Write Enabled"" is checkedin Import Settings of the texture. Otherwise, it will fail in background replacing, but continue in color replacing.
-  2. The texture should have the same size as the generated thumbnails. Otherwise, the texture background might be split to fit the thumbnail size, or will not apply, which may cause unexpected visual effect."));
+  2. The texture should have the same size as the generated thumbnails. Otherwise, the texture background might be split to fit the thumbnail size, or will not apply, which may cause unexpected visual effect.
+  3. If both color and texture are assigned, the texture will be prior in replacing background."));
                         GUILayout.FlexibleSpace();
                         bgReplaceColorTex = (Texture2D)EditorGUILayout.ObjectField(
                                 bgReplaceColorTex,
