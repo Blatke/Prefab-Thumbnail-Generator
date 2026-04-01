@@ -1,6 +1,6 @@
 // First created by Bl@ke on June 14, 2025.
 // https://github.com/Blatke/Prefab-Thumbnail-Generator
-// Version 1.1.2 on April 2, 2026.
+// Version 1.1.3 on April 2, 2026.
 /*
 Guide:
 - If you update any scripts for this Generator, please re-open its window after the updating.
@@ -30,7 +30,7 @@ namespace Blatke.General.Texture
 {
     public class PrefabThumbnailGenerator : EditorWindow
     {
-        private string windowTitle = "Prefab Thumbnail Generator 1.1.2";
+        private string windowTitle = "Prefab Thumbnail Generator 1.1.3";
         private string _settingFileName = "PrefabThumbnailGeneratorSettings.json";
         private bool _isSettingsAlreadyRead = false;
         private int targetWidth = 128;
@@ -52,11 +52,12 @@ namespace Blatke.General.Texture
         private bool targetRepeatedFileReName = false;
         private bool useWaterMark = false;
         private Texture2D waterMarkTex;
+        private string waterMarkTexPath = string.Empty;
         private Color[] waterMarkPixels;
         private bool bgReplace = false;
         private Vector4 bgReplaceColor = new Vector4(1, 1, 1, 1);
         private Texture2D bgReplaceColorTex;
-
+        private string bgReplaceColorTexPath = string.Empty;
 
         // ===========
 
@@ -76,6 +77,8 @@ namespace Blatke.General.Texture
         private FileNaming _repeatedFileNames = new FileNaming();
         private bool _useWatermarkInProcess = true;
         private bool _useBgTexReplaceInProcess = true;
+        private string _waterMarkTexPathTemp = string.Empty;
+        private string _bgReplaceColorTexPathTemp = string.Empty;
 
         [MenuItem("Window/Bl@ke/Prefab Thumbnail Generator")]
         public static void ShowWindow()
@@ -111,8 +114,10 @@ namespace Blatke.General.Texture
             jr.SetRead("targetAsDesignatedTexture_isAlpha", ref targetAsDesignatedTexture_isAlpha);
             jr.SetRead("targetRepeatedFileReName", ref targetRepeatedFileReName);
             jr.SetRead("useWaterMark", ref useWaterMark);
+            jr.SetRead("waterMarkTexPath", ref waterMarkTexPath);
             jr.SetRead("bgReplace", ref bgReplace);
             jr.SetRead("bgReplaceColor", ref bgReplaceColor);
+            jr.SetRead("bgReplaceColorTexPath", ref bgReplaceColorTexPath);
         }
         void SettingsUpdate()
         {
@@ -134,6 +139,11 @@ namespace Blatke.General.Texture
             jr.Write("" + nameof(useWaterMark) + "", "" + useWaterMark);
             jr.Write("" + nameof(bgReplace) + "", "" + bgReplace);
             jr.Write("" + nameof(bgReplaceColor) + "", "" + bgReplaceColor);
+
+            waterMarkTexPath = AssetDatabase.GetAssetPath(waterMarkTex);
+            jr.Write("" + nameof(waterMarkTexPath) + "", "" + waterMarkTexPath);
+            bgReplaceColorTexPath = AssetDatabase.GetAssetPath(bgReplaceColorTex);
+            jr.Write("" + nameof(bgReplaceColorTexPath) + "", "" + bgReplaceColorTexPath);
 
             if (jr.isChanged)
             {
@@ -331,6 +341,10 @@ The good prefabs are still used in generating."));
   1. ""Read/Write Enabled"" is checkedin Import Settings of the texture. Otherwise, it will fail in adding watermark, but continue in generating thumbnails without watermark.
   2. The texture should have the same size as the generated thumbnails. Otherwise, the watermark might be split to fit the thumbnail size, or will not apply, which may cause unexpected visual effect."));
                         GUILayout.FlexibleSpace();
+                        if (!string.IsNullOrEmpty(waterMarkTexPath) && waterMarkTexPath !=  _waterMarkTexPathTemp)
+                        {
+                            waterMarkTex = AssetDatabase.LoadAssetAtPath<Texture2D>(waterMarkTexPath);              _waterMarkTexPathTemp = waterMarkTexPath;
+                        }
                         waterMarkTex = (Texture2D)EditorGUILayout.ObjectField(
                                 waterMarkTex,
                                 typeof(Texture2D),
@@ -369,6 +383,10 @@ To use this color, instead of a texture, in replacing background, please make su
   2. The texture should have the same size as the generated thumbnails. Otherwise, the texture background might be split to fit the thumbnail size, or will not apply, which may cause unexpected visual effect.
   3. If both color and texture are assigned, the texture will be prior in replacing background."));
                         GUILayout.FlexibleSpace();
+                        if (!string.IsNullOrEmpty(bgReplaceColorTexPath) && bgReplaceColorTexPath !=  _bgReplaceColorTexPathTemp)
+                        {
+                            bgReplaceColorTex = AssetDatabase.LoadAssetAtPath<Texture2D>(bgReplaceColorTexPath);              _bgReplaceColorTexPathTemp = bgReplaceColorTexPath;
+                        }
                         bgReplaceColorTex = (Texture2D)EditorGUILayout.ObjectField(
                                 bgReplaceColorTex,
                                 typeof(Texture2D),
