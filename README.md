@@ -136,6 +136,22 @@ The replaced result is:
 >
 > This sort of conflict will not affect watermark in the generation. 
 
+Also, you can choose a texture as the new background in replacement: 
+
+<img width="305" height="25" alt="image" src="https://github.com/user-attachments/assets/4ed308f5-ace6-497f-bb73-0541851608c2" />
+
+Suppose we assign this texture slot to this following image:
+
+<img width="128" height="128" alt="bg" src="https://github.com/user-attachments/assets/1377fdc2-a23e-4bd2-83d8-a6ab331321a8" />
+
+The replaced result could be:
+
+<img width="128" height="128" alt="thumb_body skin" src="https://github.com/user-attachments/assets/393c50e4-0776-4512-a440-0a8ce94c945f" />
+
+> [!NOTE]
+>
+> The Import Settings and size of this replace background texture have to be like what it does in [Watermark](https://github.com/Blatke/Prefab-Thumbnail-Generator/edit/main/README.md#use-watermark).
+
 <hr/>
 
 ### Save Settings
