@@ -1,6 +1,6 @@
 // First created by Bl@ke on June 14, 2025.
 // https://github.com/Blatke/Prefab-Thumbnail-Generator
-// Version 1.1.1 on April 1, 2026.
+// Version 1.1.2 on April 2, 2026.
 /*
 Guide:
 - If you update any scripts for this Generator, please re-open its window after the updating.
@@ -23,14 +23,14 @@ using System.Threading.Tasks;
 using Blatke.General.Json;
 using Blatke.General.PathHepler;
 using Blatke.General.XML;
-// using System.Drawing;
+using D = System.Drawing;
 // using System.Diagnostics;
 
 namespace Blatke.General.Texture
 {
     public class PrefabThumbnailGenerator : EditorWindow
     {
-        private string windowTitle = "Prefab Thumbnail Generator 1.1.1";
+        private string windowTitle = "Prefab Thumbnail Generator 1.1.2";
         private string _settingFileName = "PrefabThumbnailGeneratorSettings.json";
         private bool _isSettingsAlreadyRead = false;
         private int targetWidth = 128;
@@ -55,6 +55,7 @@ namespace Blatke.General.Texture
         private Color[] waterMarkPixels;
         private bool bgReplace = false;
         private Vector4 bgReplaceColor = new Vector4(1, 1, 1, 1);
+        private Texture2D bgReplaceColorTex;
 
 
         // ===========
@@ -74,6 +75,7 @@ namespace Blatke.General.Texture
         private TextureGenerator pureColorTex;
         private FileNaming _repeatedFileNames = new FileNaming();
         private bool _useWatermarkInProcess = true;
+        private bool _useBgTexReplaceInProcess = true;
 
         [MenuItem("Window/Bl@ke/Prefab Thumbnail Generator")]
         public static void ShowWindow()
@@ -356,9 +358,24 @@ However, any other parts in the generated thumbnails with the same color will al
                     EditorGUILayout.BeginHorizontal();
                     {
                         GUILayout.Label(new GUIContent("Replace Color", @"Set the color to replace the background color."));
-                        bgReplaceColor = EditorGUILayout.ColorField(GUIContent.none, bgReplaceColor, true, false, false, GUILayout.Width(150));
+                        bgReplaceColor = EditorGUILayout.ColorField(GUIContent.none, bgReplaceColor, true, true, false, GUILayout.Width(150));
                     }
                     EditorGUILayout.EndVertical();
+                    EditorGUILayout.BeginHorizontal();
+                    {
+                        GUILayout.Label(new GUIContent("Replace Texture", @"Adopt a texture in Asset as the background texture. Please make sure:
+  1. ""Read/Write Enabled"" is checkedin Import Settings of the texture. Otherwise, it will fail in background replacing, but continue in color replacing.
+  2. The texture should have the same size as the generated thumbnails. Otherwise, the texture background might be split to fit the thumbnail size, or will not apply, which may cause unexpected visual effect."));
+                        GUILayout.FlexibleSpace();
+                        bgReplaceColorTex = (Texture2D)EditorGUILayout.ObjectField(
+                                bgReplaceColorTex,
+                                typeof(Texture2D),
+                                false,
+                                GUILayout.Width(150)
+                            );
+                        _useBgTexReplaceInProcess = bgReplaceColorTex != null;
+                    }
+                    EditorGUILayout.EndHorizontal();
                 }
             }
             EditorGUILayout.EndVertical();
@@ -571,11 +588,32 @@ Perhaps some prefabs didn't have correct textures, or were not ready in Unity. "
                 if (originalPixels == null || originalPixels.Length == 0)
                     originalPixels = resized.GetPixels(0, 0, targetWidth, targetHeight);
                 Color bgColor = new Color(82f / 255f, 82f / 255f, 82f / 255f);
+                Color[] bgReplaceColorTexPixels = null;
+                if (bgReplaceColorTex)
+                {
+                    if (bgReplaceColorTex.width < targetWidth || bgReplaceColorTex.height < targetHeight)
+                    {
+                        Debug.LogWarning("Background replace texture size is smaller than target thumbnail size. Texture will not be applied, and thumbnail generation will continue with color replacing only. Please use a background replace texture with the same or larger size than target thumbnail size if you want to get the best visual effect.");
+                        _useBgTexReplaceInProcess = false;
+                    }
+                    else if (!bgReplaceColorTex.isReadable)
+                    {
+                        Debug.LogWarning("Background replace texture is not readable. Enable Read/Write in import settings. Thumbnail generation will continue with color replacing only. Please make the background replace texture readable if you want to get the best visual effect.");
+                        _useBgTexReplaceInProcess = false;
+                    }
+                    else
+                    {
+                        bgReplaceColorTexPixels = bgReplaceColorTex.GetPixels(0, 0, targetWidth, targetHeight);
+                    }
+                }
                 for (int i = 0; i < originalPixels.Length; i++)
                 {
                     if (originalPixels[i].Equals(bgColor))
                     {
-                        originalPixels[i] = bgReplaceColor;
+                        if (!_useBgTexReplaceInProcess)
+                            originalPixels[i] = bgReplaceColor;
+                        else
+                            originalPixels[i] = bgReplaceColorTexPixels[i];
                     }
                 }
                 resized.SetPixels(originalPixels);
