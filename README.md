@@ -85,7 +85,11 @@ If **"Only for Failed Prefabs"** is checked, the Generator will reference to the
 
 ### Use Watermark
 You can adopt a texture as a watermark adding to the thumbnail during the generation.
-1. Prepare a texture as the watermark. The alpha values in the texture indicate the weights of the watermark blending with the thumbnail. The size of the texture image has to be equal to that of the thumbnail about to be generated, otherwise, the watermark has to be scratched.
+1. Prepare a texture as the watermark. 
+
+The alpha values in the texture indicate the weights of the watermark blending with the thumbnail. 
+
+The texture should have the same size as the generated thumbnails. Otherwise, the watermark might be splited to fit the thumbnail size, or will not apply, which may cause unexpected visual effect.
 
 Such like the following texture:
 
