@@ -48,7 +48,9 @@ Some of the options will pop tips if the mouse is hovering the texts:
 The thumbnails will be named same as the prefabs. We can choose to give them a prefix and suffix beside the names of thumbnails:
 
 ![2025-07-03_022307](https://github.com/user-attachments/assets/4333b5e5-c9b9-4aab-9224-af7c68d6ffb8)
+
 <hr/>
+
 ### Include Images and Materials
 
 Sometimes we also want to resize images, or generate the thumbnails from materials. So, check **"Include Images"** or **"Include Materials"**, and the Generator will also generate thumbnails from our selected images or materials:
@@ -56,7 +58,9 @@ Sometimes we also want to resize images, or generate the thumbnails from materia
 ![2025-07-04_163904](https://github.com/user-attachments/assets/556a3ea1-c205-4669-a89e-eb4acb298d0c)
 
 Without "Include Images" or "Include Materials" being checked, the Generator will not process images or materials.
+
 <hr/>
+
 ### Avoid Repeated-Names
 
 If a particular object such as a prefab, image or material is refenerced in thumbnail generating, and the file name the generated thumbnail supposes to use is same to an existing image at the same path, let us say, _"Assets/Folder/thumb_A.png"_, the generated thumbnail will overwrite it. 
