@@ -88,6 +88,7 @@ You can adopt a texture as a watermark adding to the thumbnail during the genera
 1. Prepare a texture as the watermark. The alpha values in the texture indicate the weights of the watermark blending with the thumbnail. The size of the texture image has to be equal to that of the thumbnail about to be generated, otherwise, the watermark has to be scratched.
 
 Such like the following texture:
+
 <img width="128" height="128" alt="watermark" src="https://github.com/user-attachments/assets/589e112a-5bde-4f7c-830b-16fdb4442ebe" />
 
 2. After importing the watermark texture in Unity, make sure the options of **"Alpha is Transparency"** as well as **"Read/Write Enabled" is checked**. Also, **"Use Crunch Compression" must remain unchecked**.
