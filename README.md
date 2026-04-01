@@ -154,7 +154,7 @@ The replaced result could be:
 
 > [!NOTE]
 >
-> The Import Settings and size of this replace background texture have to be like what it does in [Watermark](https://github.com/Blatke/Prefab-Thumbnail-Generator/edit/main/README.md#use-watermark).
+> The Import Settings and size of this replace background texture have to be like what it does in [Watermark](https://github.com/Blatke/Prefab-Thumbnail-Generator?tab=readme-ov-file#use-watermark).
 >
 > If you want to use pure color in background replacing instead of texture, just leave the texture slot blank.
 
