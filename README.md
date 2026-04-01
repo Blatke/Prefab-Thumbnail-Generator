@@ -176,7 +176,7 @@ As the screenshot shown above, if checking the option of **"Name by 'mod.xml' fo
 >
 > 1. The .xml file has to be named like: **mod.xml**, **mod 1.xml** or **mod 2.xml**. Otherwise, the Generator cannot find it.
 > 
-> 2. Tags in** mod.sxml**, **mod 1.sxml** or **mod 2.sxml** that are used in hooh Modding Tools v0.7.0 can be also read. [1.0.5 Updated]
+> 2. Tags in **mod.sxml**, **mod 1.sxml** or **mod 2.sxml** that are used in hooh Modding Tools v0.7.0 can be also read. [1.0.5 Updated]
 >
 > 3. If the Generator find the **first** compatible .xml/.sxml file for a particular prefab, it will read it and stop searching.
 
