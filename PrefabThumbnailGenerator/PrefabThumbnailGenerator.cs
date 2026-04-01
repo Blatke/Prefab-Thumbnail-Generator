@@ -71,6 +71,7 @@ namespace Blatke.General.Texture
         private JsonRead jr;
         private TextureGenerator pureColorTex;
         private FileNaming _repeatedFileNames = new FileNaming();
+        private bool _useWatermarkInProcess = true;
 
         [MenuItem("Window/Bl@ke/Prefab Thumbnail Generator")]
         public static void ShowWindow()
@@ -143,8 +144,11 @@ namespace Blatke.General.Texture
         // }
         void OnDestroy()
         {
-            if (pureColorTex == null) return;
-            pureColorTex.Dispose();
+            if (pureColorTex != null)
+            {
+                pureColorTex.Dispose();
+                pureColorTex = null;
+            }
         }
         void OnGUI()
         {
@@ -307,6 +311,7 @@ The good prefabs are still used in generating."));
                     GUILayout.Label(new GUIContent("Use Watermark", @"Will add a designated texture as a watermark to generated thumbnails."));
                     GUILayout.FlexibleSpace();
                     useWaterMark = GUILayout.Toggle(useWaterMark, "");
+                    _useWatermarkInProcess = useWaterMark;
                 }
                 EditorGUILayout.EndHorizontal();
                 if (useWaterMark)
@@ -315,7 +320,7 @@ The good prefabs are still used in generating."));
                     {
                         GUILayout.Label(new GUIContent("Watermark Texture", @"Adopt a texture in Asset as the watermark. Please make sure:
   1. ""Read/Write Enabled"" is checkedin Import Settings of the texture. Otherwise, it will fail in adding watermark, but continue in generating thumbnails without watermark.
-  2. The texture is the same size as the generated thumbnails. Otherwise, the watermark will be stretched to fit the thumbnail size, which may cause unexpected visual effect."));
+  2. The texture should have the same size as the generated thumbnails. Otherwise, the watermark might be splited to fit the thumbnail size, or will not apply, which may cause unexpected visual effect."));
                         GUILayout.FlexibleSpace();
                         waterMarkTex = (Texture2D)EditorGUILayout.ObjectField(
                                 waterMarkTex,
@@ -402,11 +407,11 @@ Otherwise, generated thumbnails will overwrite existing repeated images, even in
             _modXmlPath = "";
 
             // Prepare watermark pixels if needed.
-            if (useWaterMark && waterMarkTex != null){
+            if (_useWatermarkInProcess && waterMarkTex != null){
                 if (!waterMarkTex.isReadable)
                 {
                     Debug.LogError("Source texture is not readable. Enable Read/Write in import settings. Thumbnail generation will continue without watermark.");
-                    useWaterMark = false;
+                    _useWatermarkInProcess = false;
                 }else{
                 waterMarkPixels = waterMarkTex.GetPixels(0,0,waterMarkTex.width, waterMarkTex.height);
                 }
@@ -532,12 +537,17 @@ Perhaps some prefabs didn't have correct textures, or were not ready in Unity. "
 
             // Add watermark if needed.
             Texture2D watermarkAddedTexture = null;
-            if (useWaterMark && waterMarkTex != null && waterMarkPixels != null && waterMarkPixels.Length > 0)
+            if (_useWatermarkInProcess && waterMarkTex != null && (waterMarkTex.width < targetWidth || waterMarkTex.height < targetHeight))
             {
-                Debug.Log("Adding watermark to thumbnail of prefab: " + waterMarkTex.name);
+                Debug.LogWarning("Watermark texture size is smaller than target thumbnail size. Watermark will not be applied, and thumbnail generation will continue without it. Please use a watermark texture with the same or larger size than target thumbnail size if you want to get the best visual effect.");
+                _useWatermarkInProcess = false;
+            }
+            if (_useWatermarkInProcess && waterMarkTex != null && waterMarkPixels != null && waterMarkPixels.Length > 0)
+            {
+                // Debug.Log("Adding watermark to thumbnail of prefab: " + waterMarkTex.name);
                 Color[] originalPixels = resized.GetPixels(0, 0, targetWidth, targetHeight);
                 Color[] watermarkAddedPixels = new Color[targetHeight * targetWidth];
-                for (int i = 0; i < watermarkAddedPixels.Length; i++)
+                for (int i = 0; i < originalPixels.Length; i++)
                 {
                     Color originalColor = originalPixels[i];
                     Color watermarkColor = waterMarkPixels[i];
