@@ -41,12 +41,14 @@ Some of the options will pop tips if the mouse is hovering the texts:
 
 ![2025-07-03_044939](https://github.com/user-attachments/assets/4ead3c2a-4293-4b96-86e0-75569fc02b41)
 
+<hr/>
+
 ### Prefix & Suffix in Naming
 
 The thumbnails will be named same as the prefabs. We can choose to give them a prefix and suffix beside the names of thumbnails:
 
 ![2025-07-03_022307](https://github.com/user-attachments/assets/4333b5e5-c9b9-4aab-9224-af7c68d6ffb8)
-
+<hr/>
 ### Include Images and Materials
 
 Sometimes we also want to resize images, or generate the thumbnails from materials. So, check **"Include Images"** or **"Include Materials"**, and the Generator will also generate thumbnails from our selected images or materials:
@@ -54,7 +56,7 @@ Sometimes we also want to resize images, or generate the thumbnails from materia
 ![2025-07-04_163904](https://github.com/user-attachments/assets/556a3ea1-c205-4669-a89e-eb4acb298d0c)
 
 Without "Include Images" or "Include Materials" being checked, the Generator will not process images or materials.
-
+<hr/>
 ### Avoid Repeated-Names
 
 If a particular object such as a prefab, image or material is refenerced in thumbnail generating, and the file name the generated thumbnail supposes to use is same to an existing image at the same path, let us say, _"Assets/Folder/thumb_A.png"_, the generated thumbnail will overwrite it. 
@@ -64,6 +66,8 @@ To avoid this overwriting problem, we can check **"Rename Name-Repeated Thumbs"*
 ![2025-07-04_202719](https://github.com/user-attachments/assets/884c860d-465e-43e7-87ea-4e0f15ff3220)
 
 So if a newly generated thumbnail is _"Assets/Folder/thumb_A.png"_ and is repeated to an existing one, the earlier will be renamed to _"Assets/Folder/thumb_A 1.png"_. If the renamed one still meets repeated, it will then be renamed to _"Assets/Folder/thumb_A 2.png"_, and so forth... till it is unique to all the existing images at the same path.
+
+<hr/>
 
 ### "Good" and "Failed" Prefabs
 
@@ -83,15 +87,19 @@ If **"Only for Failed Prefabs"** is checked, the Generator will reference to the
 
 ![2025-07-03_023823](https://github.com/user-attachments/assets/003de375-0d7e-4459-88da-7698be20006a)
 
+<hr/>
+
 ### Use Watermark
+
 You can adopt a texture as a watermark adding to the thumbnail during the generation.
 1. Prepare a texture as the watermark. 
+> [!NOTE]
+>
+> The alpha values in the texture indicate the weights of the watermark blending with the thumbnail.
+>
+> The texture should have the same size as the generated thumbnails. Otherwise, the watermark might be split to fit the thumbnail size, or will not apply, which may cause unexpected visual effect.
 
-The alpha values in the texture indicate the weights of the watermark blending with the thumbnail. 
-
-The texture should have the same size as the generated thumbnails. Otherwise, the watermark might be split to fit the thumbnail size, or will not apply, which may cause unexpected visual effect.
-
-Such like the following texture:
+Take the following texture as an instance:
 
 <img width="128" height="128" alt="watermark" src="https://github.com/user-attachments/assets/589e112a-5bde-4f7c-830b-16fdb4442ebe" />
 
@@ -107,6 +115,8 @@ Such like the following texture:
 
 <img width="128" height="128" alt="thumb_body skin" src="https://github.com/user-attachments/assets/9480b2ce-368d-4076-b67a-db5d9920c677" />
 
+<hr/>
+
 ### Background Color Replace
 The default background color of prefab (and other assets) is #525252, and this leads to the same background color of generated thumbnails, such like:
 
@@ -120,7 +130,13 @@ The replaced result is:
 
 <img width="128" height="128" alt="thumb_body skin 1" src="https://github.com/user-attachments/assets/ba41050f-7810-4851-a590-bf16b0f7d456" />
 
-However, any other parts in the generated thumbnails with the same color will also be replaced, which may cause unexpected visual effect. Please use this option carefully.
+> [!NOTE]
+>
+> However, any other parts in the generated thumbnails with the same color will also be replaced, which may cause unexpected visual effect. Please use this option carefully.
+>
+> This sort of conflict will not affect watermark in the generation. 
+
+<hr/>
 
 ### Save Settings
 You can click **"Save Settings"** button at the right-top to persist your adjustments in settings:
